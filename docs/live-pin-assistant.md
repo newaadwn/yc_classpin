@@ -2,11 +2,12 @@
 
 User-authorized scope (2026-09-11), branch AI_Develop:
 - Preserve existing PIN visibility switch and student submission/reaction/answer flows.
-- Independent instructor in-page notification switch; OFF does not block or delete questions.
+- Instructor PIN notification and visibility switches share the persisted session PIN setting. OFF hides PINs/alerts on the instructor screen and slideshow, including already-open windows; ON restores them. OFF does not block or delete student questions or hide the question list.
 - Question-time PIN ON selects at most five unanswered questions through current slide,
   filtered by existing category, ordered by reactions, oldest, newest or current slide.
-- Local AI starts on newly received/edited unanswered questions while instructor page is open.
-  Existing questions are analyzed on selection or explicit retry, not bulk-generated on load.
+- Updated 2026-09-26: local answer AI starts only on instructor selection or explicit retry.
+  Arrival/edit notifications do not enqueue inference. Every original is still saved; this is
+  demand-driven inference, not question sampling. See `question-management-progress.md`.
 - AI output is instructor-only, unverified, editable, and never sent automatically.
 - The instructor PIN bubble also offers the same AI draft, generation status/retry, and manual answer editor. It shares the question-scoped draft with the side panel, protects existing text, and sends only on explicit instructor action. Presentation remains read-only.
 - In the PIN bubble the AI draft is initially a light textarea placeholder, not a saved or sendable answer. “이 답변 넣기” explicitly copies it into the shared editable value in normal text color. Manual input overrides the preview; existing text is never overwritten.

@@ -256,6 +256,182 @@
   gap: 10px;
 }
 
+.root :global(.folder-material-workspace) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 16px;
+  align-items: start;
+}
+
+.root :global(.folder-material-detail) {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-bg-surface);
+}
+
+.root :global(.folder-material-detail.empty) {
+  min-height: 320px;
+  place-content: center;
+  justify-items: center;
+  color: var(--color-text-tertiary);
+  text-align: center;
+}
+
+.root :global(.folder-material-detail.empty) > svg {
+  width: 32px;
+  margin-bottom: -4px;
+}
+
+.root :global(.folder-material-detail.empty) h2 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 17px;
+}
+
+.root :global(.folder-material-detail.empty) p {
+  max-width: 250px;
+  margin: -10px 0 0;
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.root :global(.material-detail-head) {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.root :global(.material-detail-head) h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.root :global(.material-detail-status) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.root :global(.material-detail-status) i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pin-neutral-400);
+}
+
+.root :global(.material-detail-status.live) {
+  color: var(--color-error);
+}
+
+.root :global(.material-detail-status.live) i {
+  background: var(--color-error);
+}
+
+.root :global(.material-detail-thumb) {
+  min-height: 150px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--pin-neutral-100);
+}
+
+.root :global(.material-detail-thumb) > svg {
+  width: 32px;
+  color: var(--color-text-tertiary);
+}
+
+.root :global(.material-detail-copy) {
+  min-width: 0;
+}
+
+.root :global(.material-detail-copy) h3 {
+  overflow: hidden;
+  margin: 0;
+  font-size: 18px;
+  line-height: 26px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.root :global(.material-detail-copy) p {
+  overflow: hidden;
+  margin: 6px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.root :global(.material-detail-copy) p span {
+  margin-right: 6px;
+  color: var(--color-text-tertiary);
+}
+
+.root :global(.material-detail-stats) {
+  margin: 0;
+  padding: 14px 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.root :global(.material-detail-stats) div {
+  min-width: 0;
+  text-align: center;
+}
+
+.root :global(.material-detail-stats) div + div {
+  border-left: 1px solid var(--color-border);
+}
+
+.root :global(.material-detail-stats) dt {
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+
+.root :global(.material-detail-stats) dd {
+  margin: 3px 0 0;
+  color: var(--color-brand);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.root :global(.material-detail-actions) {
+  display: grid;
+  gap: 10px;
+}
+
+.root :global(.material-detail-actions) :global(.btn) {
+  width: 100%;
+  gap: 8px;
+}
+
+.root :global(.material-detail-actions) :global(.btn) svg {
+  width: 16px;
+}
+
+.root :global(.material-detail-error) {
+  margin: -6px 0 0;
+  color: var(--color-error);
+  font-size: 12px;
+  line-height: 18px;
+}
+
 .root :global(.folder-empty) {
   min-height: 260px;
   display: flex;
@@ -706,6 +882,8 @@
   .root :global(.folder-dashboard-content) { grid-column: 2; }
   .root :global(.folder-page-head) :global(.page-head) { align-items: stretch; flex-direction: column; }
   .root :global(.folder-detail-actions) { width: 100%; }
+  .root :global(.folder-material-workspace) { grid-template-columns: minmax(0, 1fr); }
+  .root :global(.folder-material-detail) { position: static; }
   .root :global(.folder-materials.grid) { grid-template-columns: minmax(0, 1fr); }
   .root :global(.ai-report-spotlight) { grid-template-columns: 48px minmax(0, 1fr); }
   .root :global(.ai-report-spotlight-link) { grid-column: 2; justify-self: start; }

@@ -1,0 +1,9 @@
+.root { padding: 16px; border-bottom: 1px solid var(--color-border); display: grid; gap: 12px; max-height: 60vh; overflow-y: auto; }
+.root p, .root small { color: var(--color-text-secondary); font-size: 13px; line-height: 1.6; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.card { padding: 16px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-bg-surface); display: grid; gap: 8px; overflow-wrap: anywhere; }
+.card ul { display: grid; gap: 8px; padding-left: 16px; }
+.card summary { cursor: pointer; padding: 8px 0; }
+.card button { white-space: normal; height: auto; min-height: 40px; }
+.card textarea { width: 100%; min-height: 120px; resize: vertical; }
+.card label { font-size: 13px; line-height: 1.6; }

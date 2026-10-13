@@ -1,6 +1,19 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
 
 :root {
+  --color-question-pin-face:#ffd438;
+  --color-question-pin-concept:#8ecbff;
+  --color-question-pin-why:#ffe17d;
+  --color-question-pin-clarification:#c4a5ff;
+  --color-question-pin-application:#86dfa5;
+  --color-question-pin-comparison:#ffb978;
+  --color-question-pin-deep-dive:#f5a4ce;
+  --color-question-pin-logistics:#8bdee3;
+  --color-question-pin-error:#ff9292;
+  --color-question-pin-important:#ffc18f;
+  --color-question-pin-praise:#c4e984;
+  --color-question-pin-idea:#a9e5d2;
+  --color-question-pin-improve:#c0b9ed;
   --pin-blue-50:#eff6ff;--pin-blue-100:#dbeafe;--pin-blue-200:#bfdbfe;--pin-blue-300:#93c5fd;--pin-blue-500:#3478f6;--pin-blue-600:#2867e8;--pin-blue-700:#0069F0;--pin-blue-800:#1e46a2;
   --pin-neutral-0:#fff;--pin-neutral-50:#f8fafc;--pin-neutral-100:#f1f5f9;--pin-neutral-200:#e5eaf0;--pin-neutral-300:#d1d8e0;--pin-neutral-400:#a9b2be;--pin-neutral-500:#7c8796;--pin-neutral-600:#5e6978;--pin-neutral-700:#3d4754;--pin-neutral-800:#252d38;--pin-neutral-900:#171d26;--pin-neutral-950:#101827;
   --color-brand:var(--pin-blue-600);--color-brand-hover:var(--pin-blue-700);--color-brand-subtle:var(--pin-blue-50);--color-folder-action:#0069f0;--color-folder-search-border:#a4a4a4;--color-folder-workspace-bg:#eee;--color-text-primary:var(--pin-neutral-900);--color-text-secondary:var(--pin-neutral-600);--color-text-tertiary:var(--pin-neutral-500);--color-bg-page:var(--pin-neutral-50);--color-bg-surface:var(--pin-neutral-0);--color-border:var(--pin-neutral-200);--color-border-strong:var(--pin-neutral-300);--color-success:#0e9f6e;--color-success-bg:#ecfdf5;--color-warning:#d97706;--color-warning-bg:#fff7ed;--color-error:#e5484d;--color-error-hover:#c93a3f;--color-error-bg:#fff1f2;--color-pending:#7c3aed;--color-pending-bg:#f5f3ff;--color-idea:#be185d;--color-idea-bg:#fdf2f8;

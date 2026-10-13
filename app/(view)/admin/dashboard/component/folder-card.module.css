@@ -23,9 +23,10 @@
 }
 
 .link {
-  height: 260px;
+  aspect-ratio: 1.22;
   display: grid;
-  grid-template-rows: 132px 128px;
+  grid-template-rows: 132fr 128fr;
+  grid-template-columns: minmax(0, 1fr);
   overflow: hidden;
   border-radius: inherit;
   color: inherit;
@@ -40,7 +41,6 @@
 .visual {
   position: relative;
   display: block;
-  height: 132px;
   padding: 28px 26px 0;
 }
 
@@ -87,10 +87,10 @@
 .body {
   position: relative;
   z-index: 2;
-  min-height: 146px;
   margin-top: -18px;
   padding: 42px 16px 16px;
-  display: block;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(140deg, color-mix(in srgb, var(--folder-accent) 20%, var(--color-bg-surface)), color-mix(in srgb, var(--folder-accent) 34%, var(--color-bg-surface)));
   clip-path: polygon(0 0, 55% 0, 64% 14%, 100% 14%, 100% 100%, 0 100%);
 }
@@ -105,38 +105,29 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 16px;
-  line-height: 24px;
+  color: var(--color-text-secondary);
+  font-size: 22px;
+  font-weight: 600;
+  line-height: normal;
 }
 
+/* 카드 본문 바닥 왼쪽에 붙인다. */
 .stats {
-  margin-top: 14px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  margin-top: auto;
+  display: block;
 }
 
 .stats span {
-  color: var(--color-text-secondary);
-  font-size: 10px;
+  color: var(--color-text-tertiary);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: normal;
 }
 
 .stats b {
-  display: block;
-  color: var(--color-text-primary);
-  font-size: 14px;
-  line-height: 18px;
+  margin-right: 4px;
+  font-weight: inherit;
   font-variant-numeric: tabular-nums;
-}
-
-.meta {
-  display: block;
-  margin-top: 10px;
-  overflow: hidden;
-  color: var(--color-text-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 10px;
 }
 
 .menu {

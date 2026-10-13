@@ -1,5 +1,6 @@
 "use client";
 
+import {analyzeLocalDeck} from "@/app/_service/local-sections";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { convertToSlides } from "@/app/_service/convert";
@@ -7,6 +8,8 @@ import { useSessions } from "@/app/_controller/session-store";
 import { useLanguage } from "@/app/_controller/language-context";
 import { localizeUploadError } from "@/app/_model/i18n";
 import type { Slide } from "@/app/_model/types";
+import type {AnalysisConfig} from '@/app/_model/lecture-analysis';
+import {prepareReview,courseOptions} from '@/app/_service/lecture-analysis-service';
 
 /** idle → uploading(바이트 전송) → processing(서버 렌더링) → 이동 */
 export type UploadPhase = "idle" | "uploading" | "processing";
@@ -29,7 +32,11 @@ function insertByPage(list: Slide[], slide: Slide): Slide[] {
 export function useSlideUpload(folderId: string | null = null) {
   const router = useRouter();
   const { locale, t } = useLanguage();
-  const { createSession } = useSessions();
+  const { createSession, sessions } = useSessions();
+  const [setupOpen,setSetupOpen]=useState(false);
+  const [fileName,setFileName]=useState('');
+  const configuration=useRef<AnalysisConfig|null>(null);
+  const pendingFile=useRef<File|undefined>(undefined);
   const [phase, setPhase] = useState<UploadPhase>("idle");
   const [uploadPct, setUploadPct] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +52,7 @@ export function useSlideUpload(folderId: string | null = null) {
 
   const start = useCallback(async (file?: File) => {
     if (!file) return;
+    if(!configuration.current){pendingFile.current=file;setFileName(file.name);setSetupOpen(true);return;}
     setError(null);
     setUploadPct(0);
     setSlides([]);
@@ -67,14 +75,20 @@ export function useSlideUpload(folderId: string | null = null) {
       });
       clearTimer();
       const session = await createSession({ folderId, title: file.name.replace(/\.(pdf|pptx?)$/i, ""), fileName: file.name, slides: result });
-      router.push(`/admin/session/${session.id}`);
+      if(configuration.current){
+        prepareReview(session,configuration.current);
+        void analyzeLocalDeck(session,file,{sessions});
+        router.push(`/admin/session/${session.id}/analysis`);
+      }else router.push(`/admin/session/${session.id}/qa-studio`);
     } catch (cause) {
       clearTimer();
       setError(cause instanceof Error ? localizeUploadError(locale, cause.message) : t("upload.failed"));
       setPhase("idle");
       setShowPreview(false);
     }
-  }, [createSession, folderId, locale, router, t]);
+  }, [createSession, folderId, locale, router, t, sessions]);
 
-  return { phase, uploadPct, error, slides, total, showPreview, busy: phase !== "idle", start };
+  const openSetup=(pick:()=>void)=>{configuration.current=null;pendingFile.current=undefined;pick();};
+  const setup=setupOpen?{courses:courseOptions(sessions),fileName,onCancel:()=>{setSetupOpen(false);pendingFile.current=undefined;configuration.current=null;},onSubmit:(config:AnalysisConfig)=>{configuration.current=config;setSetupOpen(false);const file=pendingFile.current;pendingFile.current=undefined;if(file)void start(file);}}:null;
+  return { phase, uploadPct, error, slides, total, showPreview, busy: phase !== "idle", start, openSetup, setup };
 }

@@ -1,0 +1,50 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- isolated browser fixture */
+const assert=require('node:assert/strict');
+const {chromium}=require('C:/Users/praisy/AppData/Local/Programs/Python/Python312/Lib/site-packages/playwright/driver/package');
+(async()=>{const browser=await chromium.launch({headless:true});try{
+ const page=await browser.newPage({viewport:{width:1440,height:960}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/dev/question-similarity',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({edges:[],pending:0,embedding:'unavailable',embeddedIds:[]})}));
+ await page.goto('http://127.0.0.1:3000/demo/soi?view=live');await page.waitForURL('**/admin/session/soi-demo',{timeout:120000});
+ await page.evaluate(()=>{
+  const sessions=JSON.parse(localStorage.getItem('pin-class-sessions-v1'));const s=structuredClone(sessions.find(s=>s.id==='soi-demo'));s.id='explorer-e2e';s.currentSlide=0;s.showQuestionPins=true;
+  const template=s.questions[0];const sections=Array.from({length:4},(_,i)=>({id:'s'+i,name:['시장 배경','핵심 기술','사용 예시','사업 모델'][i],x:.02+i%2*.5,y:.08+Math.floor(i/2)*.46,w:.45,h:.4,enabled:true,source:'manual',modifiedByInstructor:true,concepts:[]}));
+  s.questions=[2,8,0,20].flatMap((n,i)=>Array.from({length:n},(_,j)=>({...template,id:`e-${i}-${j}`,sessionId:s.id,slideIndex:0,text:i===1?(j<4?'이 기술은 무엇인가요?':j<7?'이 기술을 왜 사용하나요?':'두 방식의 차이는 무엇인가요?'):'이 개념은 무엇인가요?',x:sections[i].x+.2,y:sections[i].y+.2,status:'unanswered',anchorKind:'point',createdAt:new Date(2026,9,6,0,i,j).toISOString()})));
+  sessions.push(s);localStorage.setItem('pin-class-sessions-v1',JSON.stringify(sessions));const source=JSON.stringify(s.slides.map(p=>[p.id,p.imageChecksum??p.imageUrl]));const map={[s.slides[0].id]:sections};localStorage.setItem('classpin-analysis-review-v1:'+s.id,JSON.stringify({version:1,lectureId:s.id,source,config:{excludedPages:[]},sections:map,reviewedPages:[],confirmed:{source,sections:map,config:{excludedPages:[]}}}));
+ });
+ await page.goto('http://127.0.0.1:3000/admin/session/explorer-e2e');
+ const explorer=page.locator('[data-section-explorer]');await explorer.waitFor({timeout:120000});
+ await page.getByRole('complementary',{name:'페이지 섹션 질문 상세'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'기존 핀 보기',exact:true}).count(),0);
+ assert.equal(await page.getByRole('combobox',{name:'처리 상태',exact:true}).count(),1);
+ assert.equal(await page.getByRole('combobox',{name:'질문 카테고리',exact:true}).count(),0);
+ assert.equal(await page.locator('[data-section-summary]').count(),4);assert.equal(await page.locator('[data-raw-pin]').count(),0);
+ await page.screenshot({path:'output/section-explorer-overview.png',animations:'disabled'});
+ await page.getByRole('button',{name:'핵심 기술 요약 핀 · 질문 8건',exact:true}).click();
+ assert.equal(await page.locator('[data-cluster-marker]').count(),3);assert.equal(await page.locator('[data-raw-pin]').count(),0);
+ await page.screenshot({path:'output/section-explorer-clusters.png',animations:'disabled'});
+ await page.getByRole('button',{name:/묶음 1 · 4건/}).click();assert.equal(await page.locator('[data-raw-pin]').count(),4);
+ await page.locator('[data-raw-row="e-1-1"]').click();await page.getByRole('region',{name:'선택 원문 상세'}).waitFor();
+ assert.equal(await page.locator('[data-cluster-marker]').count(),0);
+ await page.locator('[data-representative-question]').getByText('이 기술은 무엇인가요?',{exact:true}).waitFor();
+ assert.equal(await page.locator('[data-raw-pin]').first().innerText(),'?');
+ const style=await page.locator('[data-original-pin="e-1-1"]').getAttribute('style');assert.match(style,/left: 72%/);assert.match(style,/top: 28%/);
+ const positions=await page.locator('[data-raw-pin]').evaluateAll(nodes=>nodes.map(n=>n.style.left+','+n.style.top));assert.equal(new Set(positions).size,4);
+ await page.screenshot({path:'output/section-explorer-raw.png',animations:'disabled'});
+ await page.getByRole('button',{name:'답변 완료 처리 · 4건',exact:true}).click();await page.getByRole('button',{name:'4건 처리 되돌리기',exact:true}).waitFor();
+ await page.getByLabel('처리 상태',{exact:true}).selectOption('done');assert.equal(await page.locator('[data-raw-pin]').count(),4);
+ await page.getByRole('button',{name:'4건 처리 되돌리기',exact:true}).click();await page.getByText('표시 0 / 30건',{exact:true}).waitFor();assert.equal(await page.locator('[data-raw-pin]').count(),0);
+ await page.getByRole('button',{name:'필터 초기화',exact:true}).click();
+ await page.getByRole('button',{name:'페이지 1',exact:true}).click();await page.getByLabel('질문 유형',{exact:true}).selectOption('why');
+ await page.getByRole('button',{name:'핵심 기술 요약 핀 · 질문 3건',exact:true}).waitFor();await page.getByRole('button',{name:'핵심 기술 요약 핀 · 질문 3건',exact:true}).click();assert.equal(await page.locator('[data-cluster-marker]').count(),1);
+ await page.locator('[data-cluster-marker]').click();assert.equal(await page.locator('[data-raw-pin]').count(),3);
+ await page.locator('[data-section-explorer] .slide-canvas').click({position:{x:5,y:5}});assert.equal(await page.locator('[data-cluster-marker]').count(),1);
+ await page.locator('[data-section-explorer] .slide-canvas').click({position:{x:5,y:5}});assert.equal(await page.locator('[data-section-summary]').count(),4);
+ await page.getByRole('button',{name:'필터 초기화',exact:true}).click();await page.getByRole('button',{name:'사업 모델 요약 핀 · 질문 20건',exact:true}).click();await page.locator('[data-cluster-marker]').click();assert.equal(await page.locator('[data-raw-pin]').count(),20);
+ await page.locator('[data-raw-row="e-3-0"]').click();assert.equal(await page.locator('[data-raw-pin="e-3-0"]').getAttribute('data-selected'),'true');
+ for(const width of [900,600]){await page.setViewportSize({width,height:900});assert.equal(await explorer.evaluate(el=>el.scrollWidth<=el.clientWidth+2),true);}
+ await page.screenshot({path:'output/section-explorer-mobile.png',animations:'disabled'});
+ await page.getByRole('complementary',{name:'페이지 섹션 질문 상세'}).getByRole('button',{name:'질문 창 닫기',exact:true}).click();
+ await page.getByRole('button',{name:'질문 창 열기',exact:true}).click();
+ await page.setViewportSize({width:1440,height:960});await page.goto('http://127.0.0.1:3000/admin/session/explorer-e2e/present');await explorer.waitFor();await page.getByRole('button',{name:'핵심 기술 요약 핀 · 질문 8건',exact:true}).waitFor();
+ assert.deepEqual(errors,[]);console.log('PASS: default hierarchy, 4/3/4 drilldown, raw coordinates, complete/undo, why filter consistency, Escape, 20 overlapping accessible originals, 900/600 responsive, live/presentation. Fixture data, no semantic quality claim.');
+}finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

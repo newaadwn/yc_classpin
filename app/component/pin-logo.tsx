@@ -1,20 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
+import ohPinLogo from "@/assets/logo/ohpin_logo.svg";
 import { useLanguage } from "@/app/_controller/language-context";
 import styles from "./pin-logo.module.css";
 
-export function PinLogo({ compact = false, href = "/", product = "Class", label }: {
-  compact?: boolean;
+export function PinLogo({ href = "/" }: {
   href?: string;
-  product?: string;
-  label?: string;
 }) {
   const { t } = useLanguage();
   return (
-    <Link className={`${styles.root} pin-logo`} href={href} aria-label={label ?? `Pin ${product} · ${t("common.home")}`}>
-      <span className="pin-logo-mark"><span /></span>
-      {!compact && <span>Pin{product ? <> <b>{product}</b></> : null}</span>}
+    <Link className={`${styles.root} pin-logo`} href={href} aria-label={`OhPin · ${t("common.home")}`}>
+      <Image className={styles.image} src={ohPinLogo} alt="" loading="eager" />
     </Link>
   );
 }

@@ -71,8 +71,36 @@ export function advancePinPlayback<T extends PositionedPin & { id: string }>(pin
   return { shownPinIds: [pins[0].id], activePinId: pins[0].id };
 }
 
-export function canRotatePinPlayback(showPins: boolean, pinCount: number, selectedPinId: string | null) {
-  return showPins && pinCount > 1 && selectedPinId === null;
+export function canRotatePinPlayback(showPins: boolean, pinCount: number, shownPinCount: number, selectedPinId: string | null) {
+  return showPins && shownPinCount < pinCount && selectedPinId === null;
+}
+
+export function nextPresentationSlide(currentSlide: number, slideCount: number) {
+  return slideCount > 0 ? (currentSlide + 1) % slideCount : 0;
+}
+
+export function presentationAutoplayDelay(
+  enabled: boolean,
+  showPins: boolean,
+  pinCount: number,
+  shownPinCount: number,
+  slideCount: number,
+  detailOpen: boolean
+) {
+  if (!enabled || slideCount < 2 || detailOpen) return null;
+  if (showPins && shownPinCount < pinCount) return null;
+  return showPins && pinCount > 0 ? 1000 : 3000;
+}
+
+export function slideIndexFromPageNumber(pageNumber: string, slideCount: number) {
+  if (!pageNumber.trim()) return null;
+  const parsed = Number(pageNumber);
+  return Number.isInteger(parsed) && parsed >= 1 && parsed <= slideCount ? parsed - 1 : null;
+}
+
+export function findNewestIncomingPin<T extends { id: string }>(pins: readonly T[], previousPinIds: readonly string[]) {
+  const previous = new Set(previousPinIds);
+  return pins.find((pin) => !previous.has(pin.id)) ?? null;
 }
 
 export function rectanglesOverlap(first: Rectangle, second: Rectangle) {

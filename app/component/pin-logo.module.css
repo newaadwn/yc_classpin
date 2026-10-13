@@ -1,4 +1,3 @@
-.root{display:flex;align-items:center;gap:10px;color:var(--color-text-primary);text-decoration:none;font-size:18px;font-weight:700;letter-spacing:-.02em}
-.root b{color:var(--color-brand);font-weight:700}
-.root :global(.pin-logo-mark){position:relative;display:grid;place-items:center;width:28px;height:28px;border-radius:9px 9px 9px 3px;background:var(--color-brand);transform:rotate(45deg)}
-.root :global(.pin-logo-mark) span{width:8px;height:8px;border:3px solid var(--color-bg-surface);border-radius:50%;transform:rotate(-45deg)}
+.root{display:flex;align-items:center;text-decoration:none}
+.root:focus-visible{outline:0;border-radius:10px;box-shadow:var(--focus)}
+.image{width:52px;height:auto;display:block}

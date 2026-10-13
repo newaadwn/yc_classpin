@@ -1,0 +1,19 @@
+.visual { position:absolute; inset:0; pointer-events:none; --pin-face:var(--color-question-pin-face); }
+.shape { display:block; width:100%; height:100%; overflow:visible; filter:drop-shadow(0 2px 3px var(--color-text-primary)); }
+.shape path { fill:var(--color-text-primary); }
+.shape circle { fill:var(--pin-face); }
+.symbol { position:absolute; left:54.5%; top:44.9%; width:17px; height:17px; transform:translate(-50%,-50%); color:var(--color-text-primary); }
+.visual[data-category=concept] { --pin-face:var(--color-question-pin-concept); }
+.visual[data-category=why] { --pin-face:var(--color-question-pin-why); }
+.visual[data-category=clarification],.visual[data-category=confusing] { --pin-face:var(--color-question-pin-clarification); }
+.visual[data-category=application],.visual[data-category=example] { --pin-face:var(--color-question-pin-application); }
+.visual[data-category=comparison] { --pin-face:var(--color-question-pin-comparison); }
+.visual[data-category=deep_dive] { --pin-face:var(--color-question-pin-deep-dive); }
+.visual[data-category=logistics] { --pin-face:var(--color-question-pin-logistics); }
+.visual[data-category=error],.visual[data-category=bug] { --pin-face:var(--color-question-pin-error); }
+.visual[data-category=important] { --pin-face:var(--color-question-pin-important); }
+.visual[data-category=praise] { --pin-face:var(--color-question-pin-praise); }
+.visual[data-category=idea] { --pin-face:var(--color-question-pin-idea); }
+.visual[data-category=improve] { --pin-face:var(--color-question-pin-improve); }
+.done { position:absolute; display:grid; place-items:center; box-sizing:border-box; border:2px solid var(--color-bg-surface); border-radius:12px; color:var(--color-bg-surface); box-shadow:var(--shadow-sm); }
+.done { top:auto; bottom:3px; right:0; min-width:16px; height:16px; padding:0; background:var(--color-success); }

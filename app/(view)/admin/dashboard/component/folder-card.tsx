@@ -15,7 +15,7 @@ export function FolderCard({ folder, deleting, onRename, onDelete }: {
   onRename?: () => void;
   onDelete?: () => void;
 }) {
-  const { t, timeAgo } = useLanguage();
+  const { t } = useLanguage();
 
   return (
     <article className={`${styles.root} ${accentClasses[folder.colorIndex] ?? styles.accent2}`}>
@@ -30,10 +30,7 @@ export function FolderCard({ folder, deleting, onRename, onDelete }: {
           <span className={styles.title}><b>{folder.name}</b></span>
           <span className={styles.stats}>
             <span><b>{folder.materialCount}</b>{t("folders.materials")}</span>
-            <span><b>{folder.slideCount}</b>{t("common.slide")}</span>
-            <span><b>{folder.questionCount}</b>{t("common.question")}</span>
           </span>
-          <small className={styles.meta}>{folder.updatedAt ? t("folders.updated", { time: timeAgo(folder.updatedAt) }) : t("folders.empty")}</small>
         </span>
       </Link>
       {onRename && onDelete && (

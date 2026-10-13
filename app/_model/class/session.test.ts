@@ -11,7 +11,7 @@ const session = (id: string): ClassSession => ({
   fileName: `${id}.pdf`,
   status: "live",
   currentSlide: 0,
-  presentationInteractions: true,
+  presentationInteractions: true, presentationAutoplay: false,
   showQuestionPins: true,
   showPresentationQr: true,
   presentationQrPosition: "bottom-right",

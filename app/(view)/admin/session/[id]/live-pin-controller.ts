@@ -8,7 +8,7 @@ import {suggestPin} from "@/app/_service/live-pin-service";
 export function useLivePin(session:ClassSession|undefined,selected:Question|undefined) {
   const {user}=useAuth();
   const scope=`${user?.id??"demo"}:${session?.id??"none"}`;
-  const [notifications,setNotifications]=useState(true);
+  const notifications = session?.showQuestionPins ?? true;
   const [questionTime,setQuestionTime]=useState(false);
   const [category,setCategory]=useState("all");
   const [sort,setSort]=useState<PinSort>("popular");
@@ -58,7 +58,7 @@ export function useLivePin(session:ClassSession|undefined,selected:Question|unde
   },[]);
   useEffect(()=>{
     generation.current++;queue.current=[];jobs.current.clear();abort.current?.abort();
-    const timer=setTimeout(()=>{setDrafts({});setNotice("");setQuestionTime(false);setCategory("all");setNotifications(true);},0);
+    const timer=setTimeout(()=>{setDrafts({});setNotice("");setQuestionTime(false);setCategory("all");},0);
     return()=>clearTimeout(timer);
   },[scope]);
   useEffect(()=>{
@@ -66,10 +66,9 @@ export function useLivePin(session:ClassSession|undefined,selected:Question|unde
     const timer=setTimeout(()=>{
       if(seen.current.scope!==scope){seen.current={scope,keys:new Map(session.questions.map(q=>[q.id,pinFingerprint(q)]))};return;}
       const incoming=session.questions.filter(q=>!seen.current.keys.has(q.id));
-      const changed=session.questions.filter(q=>seen.current.keys.get(q.id)!==pinFingerprint(q));
       seen.current.keys=new Map(session.questions.map(q=>[q.id,pinFingerprint(q)]));
       if(incoming.length&&notifications)setNotice(`새 PIN 질문 ${incoming.length}개가 도착했습니다.`);
-      if(session.status==="live")for(const q of changed)enqueueRef.current(q);
+      // Intake never triggers the expensive answer model. Generate on teacher selection.
     },0);
     return()=>clearTimeout(timer);
   },[session,scope,notifications]);
@@ -83,5 +82,5 @@ export function useLivePin(session:ClassSession|undefined,selected:Question|unde
   const top=useMemo(()=>topLivePins(session?.questions??[],session?.currentSlide??0,category,sort),[session,category,sort]);
   const all=useMemo(()=>sortedLivePins(session?.questions??[],session?.currentSlide??0,category,sort),[session,category,sort]);
   const draft=selected?drafts[selected.id]:undefined;
-  return {notifications,toggleNotifications:()=>{setNotifications(v=>!v);setNotice("");},questionTime,toggleQuestionTime:()=>setQuestionTime(v=>!v),category,setCategory,sort,setSort,notice,dismissNotice:()=>setNotice(""),top,all,draft:draft?.fingerprint===selectedKey?draft:undefined,retry:()=>selected&&enqueue(selected,true)};
+  return {notifications,questionTime,toggleQuestionTime:()=>setQuestionTime(v=>!v),category,setCategory,sort,setSort,notice:notifications?notice:"",dismissNotice:()=>setNotice(""),top,all,draft:draft?.fingerprint===selectedKey?draft:undefined,retry:()=>selected&&enqueue(selected,true)};
 }

@@ -1,9 +1,9 @@
-import {readFile} from "node:fs/promises";
 import path from "node:path";
 import {spawn} from "node:child_process";
 import {createHash} from "node:crypto";
 import type {PinSuggestion} from "@/app/_model/live-pin";
 import {AdminApiError} from "./admin-api";
+import {cachedSlidePages,loadSlideAnalysisCache} from "./slide-analysis-cache";
 
 type ContextRegion={textRedacted?:string;label?:string;bboxNorm?:unknown};
 type ContextPage={sourceSha256:string;pageNumber:number;regions:ContextRegion[]};
@@ -14,25 +14,11 @@ const pending=pool.pending??(pool.pending=new Map());
 export async function livePinContext(checksum:string|null):Promise<{ocr:ContextPage;layout:ContextPage}> {
   if(!checksum)throw new AdminApiError(409,"CONTEXT_MISSING");
   try {
-    // Benchmarks used privacy-redacted renders. Follow the recorded source→render
-    // provenance and verify render bytes; never fall back to matching page numbers.
-    let renderChecksum=checksum;
-    const baseline=path.join(process.cwd(),"output/report-ablation-v1/ocr");
-    const manifest=JSON.parse(await readFile(path.join(baseline,"manifest.json"),"utf8"));
-    const original=manifest.pages.find((p:{sourceSha256:string})=>p.sourceSha256===checksum);
-    if(original){
-      const render=path.resolve(baseline,original.renderedImage);
-      if(!render.startsWith(baseline+path.sep))throw Error();
-      renderChecksum=createHash("sha256").update(await readFile(render)).digest("hex");
-    }
-    const pages=await Promise.all(["paddleocr","ppv3"].map(async engine=>{
-      const file=path.join(process.cwd(),"output/model-benchmark-final-v1",engine,"result.json");
-      const data=JSON.parse(await readFile(file,"utf8"));
-      if(data.status!=="complete")throw Error();
-      const page=(data.pages as ContextPage[]).find(p=>p.sourceSha256===renderChecksum);
-      if(!page)throw Error();return page;
-    }));
-    return {ocr:pages[0],layout:pages[1]};
+    // Benchmarks used privacy-redacted renders. The shared cache follows the recorded
+    // source→render provenance and never falls back to matching page numbers.
+    const pages=cachedSlidePages(await loadSlideAnalysisCache(),checksum);
+    if(!pages)throw Error();
+    return pages as {ocr:ContextPage;layout:ContextPage};
   }catch{throw new AdminApiError(409,"CONTEXT_MISSING");}
 }
 export async function generateLivePin(owner:string,input:Input):Promise<PinSuggestion> {

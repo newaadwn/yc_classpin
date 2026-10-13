@@ -9,7 +9,8 @@ import urllib.request
 from pathlib import Path
 import psutil
 from model_benchmark import MODELS
-from run_local_semantic_grouping import sha256_file, _available_local_port, _wait_for_server
+from run_local_semantic_grouping import _available_local_port, _wait_for_server
+from model_verification import verified
 from ocr_redaction import redact_text
 
 ROOT=Path(__file__).resolve().parents[2]
@@ -34,7 +35,7 @@ def main():
         started=time.perf_counter()
         profile=MODELS['qwen4']
         model=Path.home()/'.cache/huggingface/hub'/('models--'+profile['source'].replace('/','--'))/'snapshots'/profile['revision']/profile['file']
-        if not model.is_file() or sha256_file(model)!=profile['sha256']:raise ValueError('MODEL_CHECKSUM')
+        if not model.is_file() or not verified(model,profile['sha256'],folder/'verified-models.json'):raise ValueError('MODEL_CHECKSUM')
         server=Path(os.environ['LOCALAPPDATA'])/'Microsoft/WinGet/Packages/ggml.llamacpp_Microsoft.Winget.Source_8wekyb3d8bbwe/llama-server.exe'
         url=f'http://127.0.0.1:{_available_local_port()}'
         process=subprocess.Popen([str(server),'-m',str(model),'--host','127.0.0.1','--port',url.rsplit(':',1)[1],'-c','8192','-t','4','-np','1','-ngl','0','--jinja','--no-warmup'],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

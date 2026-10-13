@@ -2,17 +2,17 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { Fragment, type ReactNode } from "react";
-import selectedPinIcon from "@/assets/icons/pin_icon.svg";
-import unselectedPinIcon from "@/assets/icons/pin_black_icon.svg";
+import { QuestionPinVisual } from './question-pin-visual';
 import { useLanguage } from "@/app/_controller/language-context";
 import { defaultQuestionCategorySettings, questionCategoryClass, questionCategoryLabel, questionMarkerEmoji, type Question, type QuestionCategorySettings, type Slide } from "@/app/_model/types";
 import styles from "./slide-canvas.module.css";
 
-export function SlideCanvas({ slide, questions = [], questionCategories = defaultQuestionCategorySettings(), visibleQuestionIds, pinDisplayPositions, selectedId, liveQuestionId, onSelectPin, onCanvasClick, showQuestionLabels = false, labelContent = "category", showPins = true, compact = false, children }: {
+export function SlideCanvas({ slide, questions = [], questionCategories = defaultQuestionCategorySettings(), visibleQuestionIds, emphasizedQuestionIds, pinDisplayPositions, selectedId, liveQuestionId, onSelectPin, onCanvasClick, showQuestionLabels = false, labelContent = "category", showPins = true, compact = false, statusColoredPins = false, children }: {
   slide: Slide;
   questions?: Question[];
   questionCategories?: QuestionCategorySettings;
   visibleQuestionIds?: readonly string[];
+  emphasizedQuestionIds?: readonly string[];
   pinDisplayPositions?: ReadonlyMap<string, { x: number; y: number }>;
   selectedId?: string | null;
   liveQuestionId?: string | null;
@@ -22,6 +22,7 @@ export function SlideCanvas({ slide, questions = [], questionCategories = defaul
   labelContent?: "category" | "body";
   showPins?: boolean;
   compact?: boolean;
+  statusColoredPins?: boolean;
   children?: ReactNode;
 }) {
   const { t, categoryLabel: defaultCategoryLabel } = useLanguage();
@@ -83,9 +84,8 @@ export function SlideCanvas({ slide, questions = [], questionCategories = defaul
                 <span className={markerEmoji ? "emoji-pin" : ""}>{markerEmoji}</span>
               </button>
             ) : (
-              <button className={`question-pin ${isSelected ? "selected" : ""} ${isLive ? "live" : ""}`} style={{ left: `${position.x! * 100}%`, top: `${position.y! * 100}%` }} data-presentation-pin-id={q.id} onClick={() => onSelectPin?.(q.id)} aria-label={t("question.pinAria", { text: q.text })}>
-                <img className="question-pin-icon" src={(isSelected ? selectedPinIcon : unselectedPinIcon).src} alt="" aria-hidden="true" draggable={false} />
-                <span className={`question-pin-marker ${markerEmoji ? "emoji" : ""}`} aria-hidden="true">{markerEmoji}</span>
+              <button className={`question-pin ${isSelected ? "selected" : ""} ${isLive ? "live" : ""}`} style={{ left: `${position.x! * 100}%`, top: `${position.y! * 100}%` }} data-filter-match={emphasizedQuestionIds?emphasizedQuestionIds.includes(q.id):undefined} data-answer-status={statusColoredPins?(q.status==='unanswered'?'pending':'done'):undefined} data-presentation-pin-id={q.id} onClick={() => onSelectPin?.(q.id)} aria-label={t("question.pinAria", { text: q.text })}>
+                <QuestionPinVisual category={q.category} done={q.status !== 'unanswered'} />
               </button>
             )}
             {showQuestionLabels && (

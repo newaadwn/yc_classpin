@@ -39,6 +39,19 @@ export async function requireAdminRequest(request: Request): Promise<AdminReques
   return { client, user: userData.user, accessToken };
 }
 
+/** QR 참여자(익명 Supabase 세션) 요청. 조회는 호출자 토큰 그대로 RLS 를 통과해야 한다. */
+export async function requireParticipantRequest(request: Request): Promise<AdminRequestContext> {
+  const authorization = request.headers.get("authorization") ?? "";
+  const match = /^Bearer ([^\s]+)$/.exec(authorization);
+  if (!match) throw new AdminApiError(401, "AUTH_REQUIRED");
+  const accessToken = match[1];
+  const client = getSupabaseClientForToken(accessToken);
+  if (!client) throw new AdminApiError(503, "SUPABASE_NOT_CONFIGURED", true);
+  const { data, error } = await client.auth.getUser(accessToken);
+  if (error || !data.user || !data.user.is_anonymous) throw new AdminApiError(401, "AUTH_REQUIRED");
+  return { client, user: data.user, accessToken };
+}
+
 export function adminApiErrorResponse(error: unknown) {
   if (error instanceof AdminApiError) {
     return Response.json({ error: { code: error.code, retryable: error.retryable } }, { status: error.status });

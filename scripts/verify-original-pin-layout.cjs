@@ -1,0 +1,53 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- isolated browser fixture */
+const assert=require('node:assert/strict');
+const {chromium}=require('C:/Users/praisy/AppData/Local/Programs/Python/Python312/Lib/site-packages/playwright/driver/package');
+(async()=>{const browser=await chromium.launch({headless:true});try{
+ const page=await browser.newPage({viewport:{width:1440,height:960}}),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/api/dev/question-similarity',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({edges:[],pending:0,embedding:'unavailable',embeddedIds:[]})}));
+ await page.goto('http://127.0.0.1:3000/demo/soi?view=live');await page.waitForURL('**/admin/session/soi-demo',{timeout:120000});
+ await page.evaluate(()=>{
+  const sessions=JSON.parse(localStorage.getItem('pin-class-sessions-v1'));const s=structuredClone(sessions.find(s=>s.id==='soi-demo'));s.id='explorer-e2e';s.currentSlide=0;s.showQuestionPins=true;
+  const template=s.questions[0];const sections=Array.from({length:4},(_,i)=>({id:'s'+i,name:['시장 배경','핵심 기술','사용 예시','사업 모델'][i],x:.02+i%2*.5,y:.08+Math.floor(i/2)*.46,w:.45,h:.4,enabled:true,source:'manual',modifiedByInstructor:true,concepts:[]}));
+  s.questions=[2,8,0,20].flatMap((n,i)=>Array.from({length:n},(_,j)=>({...template,id:`e-${i}-${j}`,sessionId:s.id,slideIndex:0,text:i===1?(j<4?'이 기술은 무엇인가요?':j<7?'이 기술을 왜 사용하나요?':'두 방식의 차이는 무엇인가요?'):'이 개념은 무엇인가요?',x:sections[i].x+.2,y:sections[i].y+.2,status:'unanswered',anchorKind:'point',createdAt:new Date(2026,9,6,0,i,j).toISOString()})));
+  sessions.push(s);localStorage.setItem('pin-class-sessions-v1',JSON.stringify(sessions));const source=JSON.stringify(s.slides.map(p=>[p.id,p.imageChecksum??p.imageUrl]));const map={[s.slides[0].id]:sections};localStorage.setItem('classpin-analysis-review-v1:'+s.id,JSON.stringify({version:1,lectureId:s.id,source,config:{excludedPages:[]},sections:map,reviewedPages:[],confirmed:{source,sections:map,config:{excludedPages:[]}}}));
+ });
+ await page.goto('http://127.0.0.1:3000/admin/session/explorer-e2e');
+ const explorer=page.locator('[data-section-explorer]');await explorer.waitFor({timeout:120000});
+ await page.getByRole('complementary',{name:'페이지 섹션 질문 상세'}).waitFor();
+ assert.equal(await page.getByRole('button',{name:'기존 핀 보기',exact:true}).count(),0);
+ const handle=page.getByRole('separator',{name:'슬라이드와 질문 사이드바 너비 조절'});
+ const panel=page.getByRole('complementary',{name:'페이지 섹션 질문 상세'});
+ const initial=await panel.boundingBox(),h=await handle.boundingBox();
+ await page.mouse.move(h.x+h.width/2,h.y+h.height/2);await page.mouse.down();await page.mouse.move(h.x-90,h.y+h.height/2,{steps:8});await page.mouse.up();
+ assert.ok((await panel.boundingBox()).width>initial.width+50);
+ await handle.focus();await page.keyboard.press('Home');assert.equal(await handle.getAttribute('aria-valuenow'),'22');
+ const slideBounds=await page.locator('[data-section-explorer] .slide-canvas').boundingBox(),panelBounds=await panel.boundingBox();
+ assert.ok(slideBounds.x+slideBounds.width<=panelBounds.x);assert.ok(Math.abs(slideBounds.width/slideBounds.height-16/9)<.01);
+ assert.equal(await page.getByRole('combobox',{name:'처리 상태',exact:true}).count(),1);
+ assert.equal(await page.getByRole('combobox',{name:'질문 카테고리',exact:true}).count(),0);
+ assert.equal(await page.locator('[data-section-summary]').count(),4);assert.equal(await page.locator('[data-raw-pin]').count(),0);
+ await page.screenshot({path:'output/section-explorer-overview.png',animations:'disabled'});
+ await page.getByRole('button',{name:'핵심 기술 요약 핀 · 질문 8건',exact:true}).click();
+ assert.equal(await page.locator('[data-cluster-marker]').count(),3);assert.equal(await page.locator('[data-raw-pin]').count(),0);
+ const colors=await page.locator('[data-cluster-marker]').evaluateAll(nodes=>nodes.map(n=>getComputedStyle(n).backgroundColor));assert.equal(new Set(colors).size,3,'different question types use different colors');
+ assert.equal(await page.locator('[data-cluster-marker] small').count(),0);
+ await page.locator('[data-cluster-marker]').first().hover();await page.getByRole('tooltip').waitFor();assert.ok((await page.getByRole('tooltip').innerText()).length>0);
+ await page.getByText('질문 범주별 색상',{exact:true}).waitFor();
+ await page.screenshot({path:'output/section-explorer-clusters.png',animations:'disabled'});
+ await page.getByRole('button',{name:/묶음 1 · 4건/}).click();assert.equal(await page.locator('[data-raw-pin]').count(),4);
+ await page.locator('[data-raw-row="e-1-1"]').click();await page.getByRole('region',{name:'선택 원문 상세'}).waitFor();
+ assert.equal(await page.locator('[data-cluster-marker]').count(),0);
+ await page.locator('[data-representative-question]').getByText('이 기술은 무엇인가요?',{exact:true}).waitFor();
+ assert.equal(await page.locator('[data-raw-pin]').first().innerText(),'?');
+ const style=await page.locator('[data-original-pin="e-1-1"]').getAttribute('style');assert.match(style,/left: 72%/);assert.match(style,/top: 28%/);
+ const positions=await page.locator('[data-raw-pin]').evaluateAll(nodes=>nodes.map(n=>n.style.left+','+n.style.top));assert.equal(new Set(positions).size,1);
+ await page.screenshot({path:'output/section-explorer-raw.png',animations:'disabled'});
+
+ const bubble=await page.locator('[data-representative-question]').boundingBox();
+ const slide=await page.locator('[data-section-explorer] .slide-canvas').boundingBox();
+ assert.ok(bubble.x>=slide.x&&bubble.y>=slide.y&&bubble.x+bubble.width<=slide.x+slide.width+1&&bubble.y+bubble.height<=slide.y+slide.height+1,'bubble stays inside slide');
+ const pins=await page.locator('[data-original-pin]').evaluateAll(nodes=>nodes.map(n=>{const r=n.getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height};}));
+ for(const pin of pins)assert.ok(bubble.x+bubble.width<=pin.x||pin.x+pin.width<=bubble.x||bubble.y+bubble.height<=pin.y||pin.y+pin.height<=bubble.y,'bubble avoids original pins');
+ assert.equal(await page.locator('[data-raw-pin]').count(),await page.locator('[data-original-pin]').count());
+ console.log('PASS original pins preserved, bubble inside slide and not overlapping pins');
+ }finally{await browser.close();}})().catch(e=>{console.error(e);process.exitCode=1;});

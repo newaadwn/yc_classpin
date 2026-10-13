@@ -44,7 +44,7 @@ function LoginContent() {
         {error && <div className="login-error" role="alert">{error}</div>}
         <p className="login-note">{t("login.studentNote")}</p>
       </section>
-      <footer className="landing-footer">Pin Class · {t("brand.tagline")}</footer>
+      <footer className="landing-footer">OhPin · {t("brand.tagline")}</footer>
     </main>
   );
 }

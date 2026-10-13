@@ -10,6 +10,8 @@ import { LECTURE_REACTION_EVENT, lectureReactionTopic, type LectureReactionEmoji
 import { questionsByEmpathy, questionsByNewest } from "@/app/_model/question-reactions";
 import { groupQuestionsBySlide } from "@/app/_model/stats";
 import { publishRealtimeReaction } from "@/app/_service/realtime-reaction-service";
+import { useAiQuestion } from "./use-ai-question";
+import { useAnswerNotices } from "./use-answer-notices";
 import { acceptsQuestionCategory, enabledQuestionCategories, questionCategoryClass, questionCategoryLabel, questionMarkerEmoji, type Question, type QuestionCategory, type QuestionMarker } from "@/app/_model/types";
 
 type StudentTool = "pin" | "emoji";
@@ -28,7 +30,7 @@ export function useJoinSessionController() {
   const { t, categoryLabel: defaultCategoryLabel, timeAgo } = useLanguage();
   const params = useParams<{ code: string }>();
   const finalHref = `/join/${encodeURIComponent(params.code)}/final`;
-  const { sessions, ready, addQuestion, updateQuestion, reactToQuestion, loadSessionByCode, setActiveSession } = useSessions();
+  const { sessions, ready, addQuestion, updateQuestion, moveQuestionPin, reactToQuestion, loadSessionByCode, setActiveSession } = useSessions();
   const session = useMemo(() => sessions.find((item) => item.code.toLowerCase() === params.code.toLowerCase()), [params.code, sessions]);
   const { reactions: liveReactions, addReaction } = useLectureReactions(session?.id ?? null);
   const [activeTool, setActiveTool] = useState<StudentTool>("pin");
@@ -47,6 +49,10 @@ export function useJoinSessionController() {
   const [pendingReactionIds, setPendingReactionIds] = useState<Set<string>>(new Set());
   const [reactionError, setReactionError] = useState<string | null>(null);
   const [emojiError, setEmojiError] = useState<string | null>(null);
+  const [pendingManualText, setPendingManualText] = useState("");
+  const [focusMode, setFocusMode] = useState(false);
+  const focusModeRef = useRef(false);
+  const panelBeforeFocus = useRef(true);
   const pinDragged = useRef(false);
   const pinDragStart = useRef<{ x: number; y: number } | null>(null);
 
@@ -77,6 +83,45 @@ export function useJoinSessionController() {
       setComposerOpen(false);
       setEditingQuestionId(null);
       setViewingQuestionId(null);
+    }
+  });
+
+  const answerNotices = useAnswerNotices(session?.questions, session?.id);
+
+  // 전체 화면(집중 보기): 헤더와 질문 목록을 접고 슬라이드를 최대한 크게 보여 준다.
+  // 브라우저 전체 화면을 지원하면 함께 켜고, 사용자가 Esc 로 빠져나오면 집중 보기도 끝낸다.
+  const exitFocusMode = () => {
+    if (!focusModeRef.current) return;
+    focusModeRef.current = false;
+    setFocusMode(false);
+    setQuestionsVisible(panelBeforeFocus.current);
+    if (document.fullscreenElement) void document.exitFullscreen().catch(() => undefined);
+  };
+  const exitFocusModeRef = useRef(exitFocusMode);
+  useEffect(() => { exitFocusModeRef.current = exitFocusMode; });
+  useEffect(() => {
+    const onChange = () => { if (!document.fullscreenElement) exitFocusModeRef.current(); };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const ai = useAiQuestion({
+    session,
+    current,
+    goToPage: (page) => {
+      setSlideIndex(page);
+      setComposerOpen(false);
+      setEditingQuestionId(null);
+      setViewingQuestionId(null);
+    },
+    selectQuestion: setSelectedQuestionId,
+    addQuestion,
+    updateQuestion,
+    moveQuestionPin,
+    reactToQuestion,
+    onManualFallback: (text) => {
+      setPendingManualText(text);
+      setActiveTool("pin");
     }
   });
 
@@ -116,7 +161,7 @@ export function useJoinSessionController() {
           y,
           category: currentDraft?.category ?? nextCategory,
           marker: currentDraft?.marker ?? "pin",
-          text: currentDraft?.text ?? ""
+          text: currentDraft?.text ?? pendingManualText
         }
       };
     });
@@ -153,7 +198,7 @@ export function useJoinSessionController() {
       setComposerOpen(true);
       return;
     }
-    if (question.x === null || question.y === null) return;
+    if (question.x === null || question.y === null) { ai.startMoving(question.id); return; }
     setDraftQuestions((currentDrafts) => ({
       ...currentDrafts,
       [slide.id]: {
@@ -246,6 +291,7 @@ export function useJoinSessionController() {
           path: null,
           ...values
         });
+        setPendingManualText("");
       }
       setSubmitted(true);
     } catch (error) {
@@ -337,6 +383,7 @@ export function useJoinSessionController() {
 
   return {
     state: "live" as const,
+    ai,
     t,
     timeAgo,
     finalHref,
@@ -358,6 +405,43 @@ export function useJoinSessionController() {
     questionSort,
     questionsVisible,
     toggleQuestionsVisible: () => setQuestionsVisible(visible => !visible),
+    focusMode,
+    toggleFocusMode: () => {
+      if (focusModeRef.current) { exitFocusMode(); return; }
+      focusModeRef.current = true;
+      panelBeforeFocus.current = questionsVisible;
+      setFocusMode(true);
+      setQuestionsVisible(false);
+      const root = document.documentElement;
+      if (typeof root.requestFullscreen === "function" && !document.fullscreenElement) void root.requestFullscreen().catch(() => undefined);
+    },
+    newAnswerIds: answerNotices.unseen,
+    dismissAnswer: answerNotices.dismiss,
+    // 새 답변 알림의 "보기": 그 질문이 있는 페이지로 가서 답변을 연다 (LIVE 페이지면 계속 따라간다).
+    openAnswer: (questionId: string) => {
+      const question = session.questions.find((item) => item.id === questionId);
+      answerNotices.dismiss(questionId);
+      if (!question) return;
+      exitFocusMode();
+      setSlideIndex(question.slideIndex === session.currentSlide ? null : question.slideIndex);
+      setSelectedQuestionId(question.id);
+      setEditingQuestionId(null);
+      setViewingQuestionId(question.id);
+      setSubmitted(false);
+      setSubmitError(null);
+      setComposerOpen(true);
+    },
+    // 하단 막대의 "글로 질문하기": 숨긴 질문 목록을 다시 열고 AI 입력칸에 커서를 둔다.
+    openTextQuestion: () => {
+      exitFocusMode();
+      setQuestionsVisible(true);
+      setTimeout(() => {
+        const input = document.getElementById("ai-question-input");
+        if (!(input instanceof HTMLTextAreaElement)) return;
+        input.scrollIntoView({ block: "nearest" });
+        input.focus();
+      }, 0);
+    },
     slideQuestions,
     submittedQuestions,
     visibleQuestionIds,

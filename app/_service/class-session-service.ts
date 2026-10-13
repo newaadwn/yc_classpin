@@ -1,4 +1,4 @@
-import { isParticipantPointAnchor, isQuestionMarker, normalizeClassFolderColorIndex, normalizeClassFolderName, normalizeQuestionCategorySettings, type ClassFolder, type ClassSession, type NormalizedPoint, type Question, type QuestionCategorySettings, type Slide } from "@/app/_model/types";
+import { isParticipantQuestionAnchor, isQuestionMarker, normalizeClassFolderColorIndex, normalizeClassFolderName, normalizeClassFolderPurpose, normalizeClassFolderPurposeLabel, type CreateClassFolderInput, normalizeQuestionCategorySettings, type ClassFolder, type ClassSession, type NormalizedPoint, type Question, type QuestionCategorySettings, type Slide } from "@/app/_model/types";
 import { ensureAnonymousUser, getAudienceSupabaseClient, getOwnerWriteSupabaseClient, getSessionUser, getSupabaseClient, supabaseConfigured } from "@/app/_infrastructure/supabase/client";
 
 export const classSessionPersistenceEnabled = supabaseConfigured;
@@ -13,6 +13,7 @@ type LectureRow = {
   ended_at: string | null;
   current_page: number;
   presentation_interactions: boolean;
+  presentation_autoplay: boolean;
   show_question_pins: boolean;
   show_presentation_qr: boolean;
   presentation_qr_position: ClassSession["presentationQrPosition"];
@@ -21,7 +22,7 @@ type LectureRow = {
 };
 
 export type LectureRealtimeRow = Pick<LectureRow,
-  "current_page" | "status" | "started_at" | "ended_at" | "presentation_interactions" | "show_question_pins" |
+  "presentation_autoplay" | "current_page" | "status" | "started_at" | "ended_at" | "presentation_interactions" | "show_question_pins" |
   "show_presentation_qr" | "presentation_qr_position" | "question_categories"
 >;
 
@@ -30,6 +31,8 @@ type ClassFolderRow = {
   name: string;
   created_at: string;
   color_index: number;
+  purpose: unknown;
+  purpose_label: unknown;
 };
 
 type SlideRow = {
@@ -178,6 +181,7 @@ export async function persistSession(session: ClassSession) {
     status: session.status,
     current_page: session.currentSlide,
     presentation_interactions: session.presentationInteractions,
+    presentation_autoplay: session.presentationAutoplay,
     show_question_pins: session.showQuestionPins,
     show_presentation_qr: session.showPresentationQr,
     presentation_qr_position: session.presentationQrPosition,
@@ -208,36 +212,44 @@ export async function persistSession(session: ClassSession) {
   if (slidesError) throw slidesError;
 }
 
+const toClassFolder = (folder: ClassFolderRow): ClassFolder => {
+  const purpose = normalizeClassFolderPurpose(folder.purpose);
+  return {
+    id: folder.id,
+    name: folder.name,
+    createdAt: folder.created_at,
+    colorIndex: folder.color_index,
+    purpose,
+    purposeLabel: normalizeClassFolderPurposeLabel(purpose, folder.purpose_label)
+  };
+};
+
 export async function fetchOwnedClassFolders(): Promise<ClassFolder[]> {
   const client = getSupabaseClient();
   if (!client) return [];
   const user = await requireOwnerUser();
   const { data, error } = await client.from("session_folders")
-    .select("id, name, created_at, color_index")
+    .select("id, name, created_at, color_index, purpose, purpose_label")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return ((data ?? []) as ClassFolderRow[]).map((folder) => ({
-    id: folder.id,
-    name: folder.name,
-    createdAt: folder.created_at,
-    colorIndex: folder.color_index
-  }));
+  return ((data ?? []) as ClassFolderRow[]).map(toClassFolder);
 }
 
-export async function createClassFolder(name: string, colorIndex: number): Promise<ClassFolder> {
-  const normalizedName = normalizeClassFolderName(name);
-  const normalizedColorIndex = normalizeClassFolderColorIndex(colorIndex);
+export async function createClassFolder(input: CreateClassFolderInput): Promise<ClassFolder> {
+  const name = normalizeClassFolderName(input.name);
+  const colorIndex = normalizeClassFolderColorIndex(input.colorIndex);
+  const purpose = normalizeClassFolderPurpose(input.purpose);
+  const purposeLabel = normalizeClassFolderPurposeLabel(purpose, input.purposeLabel);
   const client = getSupabaseClient();
   if (!client) throw new Error("Supabase 연결을 찾지 못했습니다.");
   const user = await requireOwnerUser();
   const { data, error } = await client.from("session_folders")
-    .insert({ owner_id: user.id, name: normalizedName, color_index: normalizedColorIndex })
-    .select("id, name, created_at, color_index")
+    .insert({ owner_id: user.id, name, color_index: colorIndex, purpose, purpose_label: purposeLabel })
+    .select("id, name, created_at, color_index, purpose, purpose_label")
     .single();
   if (error) throw error;
-  const folder = data as ClassFolderRow;
-  return { id: folder.id, name: folder.name, createdAt: folder.created_at, colorIndex: folder.color_index };
+  return toClassFolder(data as ClassFolderRow);
 }
 
 export async function renameClassFolder(folderId: string, name: string): Promise<void> {
@@ -455,6 +467,7 @@ export async function fetchOwnedSessions(): Promise<ClassSession[]> {
       current_page,
       started_at, ended_at,
       presentation_interactions,
+      presentation_autoplay,
       show_question_pins,
       show_presentation_qr,
       presentation_qr_position,
@@ -533,6 +546,7 @@ export async function fetchOwnedSessions(): Promise<ClassSession[]> {
         endedAt: lecture.ended_at,
         currentSlide: lecture.current_page,
         presentationInteractions: lecture.presentation_interactions,
+        presentationAutoplay: lecture.presentation_autoplay,
         showQuestionPins: lecture.show_question_pins,
         showPresentationQr: lecture.show_presentation_qr,
         presentationQrPosition: lecture.presentation_qr_position,
@@ -571,6 +585,7 @@ export async function fetchLiveSession(joinCode: string): Promise<ClassSession |
       current_page,
       started_at, ended_at,
       presentation_interactions,
+      presentation_autoplay,
       show_question_pins,
       show_presentation_qr,
       presentation_qr_position,
@@ -615,6 +630,7 @@ export async function fetchLiveSession(joinCode: string): Promise<ClassSession |
     startedAt: lecture.started_at,
     endedAt: lecture.ended_at,
     presentationInteractions: lecture.presentation_interactions,
+    presentationAutoplay: lecture.presentation_autoplay,
     showQuestionPins: lecture.show_question_pins,
     showPresentationQr: lecture.show_presentation_qr,
     presentationQrPosition: lecture.presentation_qr_position,
@@ -634,25 +650,16 @@ export async function fetchLiveSession(joinCode: string): Promise<ClassSession |
 export async function submitQuestion(session: ClassSession, question: Question) {
   const client = getAudienceSupabaseClient();
   if (!client) return;
-  if (!isParticipantPointAnchor(question)) throw new Error("Participant questions require a point anchor.");
+  if (!isParticipantQuestionAnchor(question)) throw new Error("Invalid question anchor.");
   const user = await ensureAnonymousUser();
   if (!user || !session.courseId) throw new Error("Supabase session is missing ownership context.");
   const slide = session.slides[question.slideIndex];
   if (!slide) throw new Error("질문을 남길 슬라이드를 찾지 못했습니다.");
-  let regionId: string | null = null;
-  if (question.x !== null && question.y !== null && session.materialVersionId) {
-    regionId = crypto.randomUUID();
-    const { error } = await client.from("region_anchors").insert({
-      id: regionId,
-      slide_id: slide.id,
-      material_version_id: session.materialVersionId,
-      kind: "point",
-      coords: { x: question.x, y: question.y },
-      created_by: "user"
-    });
-    if (error) throw error;
-  }
-  const { error } = await client.from("questions").insert({ id: question.id, course_id: session.courseId, lecture_id: session.id, slide_id: slide.id, region_id: regionId, author_id: user.id, is_anonymous: true, category: question.category, marker: question.marker, raw_text: question.text, status: "unanswered", occurred_in: "live" });
+  const { error } = await client.rpc("receive_question", {
+    request_id: question.id, target_lecture_id: session.id, target_slide_id: slide.id,
+    question_text: question.text, question_category: question.category, question_marker: question.marker,
+    target_x: question.x, target_y: question.y
+  });
   if (error) throw error;
 }
 
@@ -668,6 +675,22 @@ export async function updateQuestion(questionId: string, values: Pick<Question, 
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("수정할 수 있는 질문을 찾지 못했습니다.");
+}
+
+/** 참여자 본인의 미답변 질문 PIN 을 같은 자료의 다른 위치·슬라이드로 옮긴다(DB 함수가 권한을 검증). */
+export async function moveQuestionPin(session: ClassSession, questionId: string, slideIndex: number, point: NormalizedPoint) {
+  const client = getAudienceSupabaseClient();
+  if (!client) return;
+  await ensureAnonymousUser();
+  const slide = session.slides[slideIndex];
+  if (!slide) throw new Error("PIN을 옮길 슬라이드를 찾지 못했습니다.");
+  const { error } = await client.rpc("move_own_question_pin", {
+    target_question_id: questionId,
+    target_slide_id: slide.id,
+    target_x: point.x,
+    target_y: point.y
+  });
+  if (error) throw error;
 }
 
 export async function setQuestionReaction(questionId: string, reacted: boolean) {
@@ -703,6 +726,7 @@ export async function updateLecture(sessionId: string, values: {
   started_at?: string | null;
   ended_at?: string | null;
   presentation_interactions?: boolean;
+  presentation_autoplay?: boolean;
   show_question_pins?: boolean;
   show_presentation_qr?: boolean;
   presentation_qr_position?: ClassSession["presentationQrPosition"];
@@ -750,12 +774,12 @@ export function subscribeToLecture(
   return () => { void client.removeChannel(channel); };
 }
 
-export async function fetchLectureSnapshot(session: ClassSession, asAudience = false): Promise<Pick<ClassSession, "currentSlide" | "status" | "startedAt" | "endedAt" | "presentationInteractions" | "showQuestionPins" | "showPresentationQr" | "presentationQrPosition" | "questionCategories" | "questions"> | null> {
+export async function fetchLectureSnapshot(session: ClassSession, asAudience = false): Promise<Pick<ClassSession, "presentationAutoplay" | "currentSlide" | "status" | "startedAt" | "endedAt" | "presentationInteractions" | "showQuestionPins" | "showPresentationQr" | "presentationQrPosition" | "questionCategories" | "questions"> | null> {
   const client = asAudience ? getAudienceSupabaseClient() : getSupabaseClient();
   if (!client) return null;
   if (asAudience) await ensureAnonymousUser();
   const { data: lecture, error: lectureError } = await client.from("lectures")
-    .select("current_page, status, started_at, ended_at, presentation_interactions, show_question_pins, show_presentation_qr, presentation_qr_position, question_categories")
+    .select("presentation_autoplay, current_page, status, started_at, ended_at, presentation_interactions, show_question_pins, show_presentation_qr, presentation_qr_position, question_categories")
     .eq("id", session.id)
     .maybeSingle();
   if (lectureError) throw lectureError;
@@ -778,6 +802,7 @@ export async function fetchLectureSnapshot(session: ClassSession, asAudience = f
     endedAt: lecture ? lecture.ended_at : session.endedAt,
     status: asAudience && !lecture ? "ended" : (lecture?.status as ClassSession["status"]) ?? session.status,
     presentationInteractions: lecture?.presentation_interactions ?? session.presentationInteractions,
+    presentationAutoplay: lecture?.presentation_autoplay ?? session.presentationAutoplay,
     showQuestionPins: lecture?.show_question_pins ?? session.showQuestionPins,
     showPresentationQr: lecture?.show_presentation_qr ?? session.showPresentationQr,
     presentationQrPosition: (lecture?.presentation_qr_position as ClassSession["presentationQrPosition"]) ?? session.presentationQrPosition,

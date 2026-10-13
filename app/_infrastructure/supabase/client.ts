@@ -185,3 +185,12 @@ export async function ensureAnonymousUser() {
     anonymousSignInPromise = null;
   }
 }
+
+/** 참여자 전용 API 호출에 쓰는 익명 세션 토큰. 강사 토큰과 섞지 않는다. */
+export async function getAudienceAccessToken() {
+  const client = getAudienceSupabaseClient();
+  if (!client) return null;
+  await ensureAnonymousUser();
+  const { data } = await client.auth.getSession();
+  return data.session?.user?.is_anonymous ? data.session.access_token : null;
+}

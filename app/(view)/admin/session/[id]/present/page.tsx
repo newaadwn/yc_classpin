@@ -5,7 +5,7 @@ import { SessionRuntime } from "@/app/component/session-runtime";
 import { ChevronLeft, ChevronRight, Maximize2, Minimize2, X } from "@/app/component/icons";
 import { LanguageSwitcher } from "@/app/component/language-switcher";
 import { QuestionDetailDialog } from "../component/question-detail-dialog";
-import { SlideCanvas } from "@/app/component/slide-canvas";
+import { ClusteredSlide as SlideCanvas } from "@/app/component/clustered-slide";
 import type { PresentationQrPosition } from "@/app/_model/types";
 import { useSessionPresentationController } from "./controller";
 import styles from "./page.module.css";
@@ -64,6 +64,7 @@ export default function SessionPresentation() {
       <SessionRuntime session={session} presentation />
       <div ref={presentationCanvasRef} className="presentation-slide class-presentation-slide class-presentation-canvas" aria-label={`${session.title} · ${t("common.slideNumber", { number: session.currentSlide + 1 })}`}>
         <SlideCanvas
+          sessionId={session.id}
           slide={slide}
           questions={pageQuestions}
           questionCategories={session.questionCategories}

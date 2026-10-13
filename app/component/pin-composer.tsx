@@ -4,7 +4,8 @@ import { useLayoutEffect, useRef, type ReactNode, type RefObject } from "react";
 import styles from "./pin-composer.module.css";
 
 /** Keeps the existing question form next to its normalized slide coordinate. */
-export function PinComposer({ canvasRef, x, y, onClose, children }: {
+export function PinComposer({ canvasRef, x, y, onClose, children, duration = 420 }: {
+  duration?: number;
   canvasRef: RefObject<HTMLDivElement | null>;
   x: number;
   y: number;
@@ -72,7 +73,7 @@ export function PinComposer({ canvasRef, x, y, onClose, children }: {
           panel.style.pointerEvents = "none";
           const start = performance.now();
           const draw = (now: number) => {
-            const progress = Math.min(1, (now - start) / 420);
+            const progress = Math.min(1, (now - start) / Math.max(1, duration));
             const eased = 1 - Math.pow(1 - progress, 3);
             const mix = (a: number, b: number) => a + (b - a) * eased;
             const bx = mix(pointX - 14, left);
@@ -92,7 +93,7 @@ export function PinComposer({ canvasRef, x, y, onClose, children }: {
               if (body) body.style.display = "none";
               panel.style.opacity = "1";
               panel.style.pointerEvents = "";
-              panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 100 });
+              panel.animate([{ opacity: 0 }, { opacity: 1 }], { duration: Math.min(100, duration / 4) });
             }
           };
           draw(start);
@@ -121,7 +122,7 @@ export function PinComposer({ canvasRef, x, y, onClose, children }: {
       window.visualViewport?.removeEventListener("resize", reposition);
       window.visualViewport?.removeEventListener("scroll", reposition);
     };
-  }, [canvasRef, x, y]);
+  }, [canvasRef, x, y, duration]);
 
   useLayoutEffect(() => {
     const previous = document.activeElement;

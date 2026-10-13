@@ -1,16 +1,17 @@
 "use client";
+/* eslint-disable react-hooks/preserve-manual-memoization -- Existing timer callbacks rely on stable identities; React Compiler skips this controller when the live autoplay effect is active. */
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLanguage } from "@/app/_controller/language-context";
 import { useSessions } from "@/app/_controller/session-store";
 import { useLectureReactions } from "@/app/_controller/use-lecture-reactions";
-import { advancePinPlayback, canRotatePinPlayback, crossedPinMilestone, resolvePinDisplayPositions, resolveVisiblePresentationLabelIds } from "@/app/_model/class/presentation-rotation";
+import { advancePinPlayback, canRotatePinPlayback, crossedPinMilestone, nextPresentationSlide, presentationAutoplayDelay, resolvePinDisplayPositions, resolveVisiblePresentationLabelIds } from "@/app/_model/class/presentation-rotation";
 import { groupQuestionsBySlide } from "@/app/_model/stats";
 import type { Question } from "@/app/_model/types";
 
 const CONTROLS_HIDE_DELAY = 2600;
-const PIN_REVEAL_DELAY = 1000; // PIN이 순환되는 속도 조절 -> 현재는 3000ms으로 되어있음
+const PIN_REVEAL_DELAY = 1000; // PIN을 하나씩 드러내는 간격(ms)
 const LIVE_PIN_HIGHLIGHT_DELAY = 1000;
 const PIN_MILESTONE_DISPLAY_DELAY = 3000;
 const EMPTY_PLAYBACK = { slideIndex: null as number | null, shownPinIds: [] as string[], activePinId: null as string | null };
@@ -25,6 +26,8 @@ export function useSessionPresentationController() {
   const session = sessions.find((item) => item.id === params.id);
   const sessionId = session?.id ?? null;
   const showQuestionPins = session?.showQuestionPins ?? false;
+  const slideCount = session?.slides.length ?? 0;
+  const presentationAutoplay = session?.presentationAutoplay ?? false;
   const { reactions: liveReactions } = useLectureReactions(sessionId);
   const sessionTitle = session?.title;
   const currentSlide = session?.currentSlide;
@@ -89,6 +92,7 @@ export function useSessionPresentationController() {
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     hideTimerRef.current = setTimeout(() => setControlsVisible(false), CONTROLS_HIDE_DELAY);
   }, []);
+
 
   useEffect(() => {
     hideTimerRef.current = setTimeout(() => setControlsVisible(false), CONTROLS_HIDE_DELAY);
@@ -168,10 +172,10 @@ export function useSessionPresentationController() {
   }, [currentSlide]);
 
   useEffect(() => {
-    if (!canRotatePinPlayback(showQuestionPins, pageQuestions.length, detailQuestionId)) return;
+    if (!canRotatePinPlayback(showQuestionPins, pageQuestions.length, playback.shownPinIds.length, detailQuestionId)) return;
     const interval = window.setInterval(rotateQuestions, PIN_REVEAL_DELAY);
     return () => window.clearInterval(interval);
-  }, [detailQuestionId, pageQuestions.length, rotateQuestions, showQuestionPins]);
+  }, [detailQuestionId, pageQuestions.length, playback.shownPinIds.length, rotateQuestions, showQuestionPins]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -231,6 +235,20 @@ export function useSessionPresentationController() {
       revealControls();
     });
   }, [revealControls, session, setCurrentSlide, t]);
+
+  const autoplayDelay = presentationAutoplayDelay(
+    presentationAutoplay,
+    showQuestionPins,
+    pageQuestions.length,
+    playback.shownPinIds.length,
+    slideCount,
+    detailQuestionId !== null
+  );
+  useEffect(() => {
+    if (autoplayDelay === null) return;
+    const timeout = window.setTimeout(() => goToSlide(nextPresentationSlide(currentSlide ?? 0, slideCount)), autoplayDelay);
+    return () => window.clearTimeout(timeout);
+  }, [autoplayDelay, currentSlide, goToSlide, positionedQuestionKey, slideCount]);
 
   const toggleFullscreen = useCallback(async () => {
     setActionError(null);

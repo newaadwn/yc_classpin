@@ -19,7 +19,7 @@ export function PlatformExperienceForm({ code }: {
 
   return <main className={`${styles.root} experience-final-shell`}>
     <header className="student-header">
-      <PinLogo href={homeHref} product="Class" />
+      <PinLogo href={homeHref} />
       <LanguageSwitcher />
     </header>
     <section className="experience-final-content">

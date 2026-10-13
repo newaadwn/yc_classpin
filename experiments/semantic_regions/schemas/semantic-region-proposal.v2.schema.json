@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://classpin.local/schemas/semantic-region-proposal.v2.schema.json",
+  "title": "ClassPin multimodal semantic region proposal v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "promptVersion",
+    "slideAlias",
+    "slideSummary",
+    "keyConcepts",
+    "regions"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "semantic-region-proposal.v2" },
+    "promptVersion": { "const": "semantic-region-proposal.v1" },
+    "slideAlias": { "type": "string", "pattern": "^S[0-9]{3}$" },
+    "slideSummary": { "type": "string", "minLength": 1, "maxLength": 800 },
+    "keyConcepts": {
+      "type": "array",
+      "maxItems": 12,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1, "maxLength": 80 }
+    },
+    "regions": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 12,
+      "items": { "$ref": "#/$defs/region" }
+    }
+  },
+  "$defs": {
+    "bbox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x1", "y1", "x2", "y2"],
+      "properties": {
+        "x1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "x2": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y2": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "point": {
+      "type": "array",
+      "prefixItems": [
+        { "type": "number", "minimum": 0, "maximum": 1 },
+        { "type": "number", "minimum": 0, "maximum": 1 }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "bboxNorm",
+        "polygonNorm",
+        "readingOrder",
+        "textRedacted",
+        "summary",
+        "concepts",
+        "importance",
+        "confidence"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "title",
+            "paragraph",
+            "table",
+            "chart",
+            "formula",
+            "code",
+            "image",
+            "diagram",
+            "callout",
+            "footer",
+            "other"
+          ]
+        },
+        "bboxNorm": { "$ref": "#/$defs/bbox" },
+        "polygonNorm": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 64,
+              "items": { "$ref": "#/$defs/point" }
+            }
+          ]
+        },
+        "readingOrder": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "textRedacted": { "type": "string", "maxLength": 2000 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "concepts": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1, "maxLength": 80 }
+        },
+        "importance": { "enum": ["low", "medium", "high"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

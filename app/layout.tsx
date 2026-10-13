@@ -5,7 +5,7 @@ import { SessionStore } from "@/app/_controller/session-store";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Pin Class",
+  title: "OhPin",
   description: "Real-time lecture questions pinned to the exact spot on a slide."
 };
 

@@ -17,7 +17,7 @@ export function useMaterialsController() {
   const { sessions, ready } = useSessions();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
-  const { phase, uploadPct, error: uploadError, slides, total, showPreview, busy, start } = useSlideUpload();
+  const { phase, uploadPct, error: uploadError, slides, total, showPreview, busy, start, openSetup, setup } = useSlideUpload();
 
   const visible = useMemo(
     () => sessions
@@ -54,7 +54,8 @@ export function useMaterialsController() {
     busy,
     visible,
     pick,
-    requestUpload: () => inputRef.current?.click(),
+    setup,
+    requestUpload: () => openSetup(()=>inputRef.current?.click()),
     openSession: (id: string) => router.push(`/admin/session/${id}`)
   };
 }

@@ -27,7 +27,7 @@ const sessions = [{
   fileName: "react.pdf",
   status: "live",
   currentSlide: 0,
-  presentationInteractions: true,
+  presentationInteractions: true, presentationAutoplay: false,
   showQuestionPins: true,
   showPresentationQr: true,
   presentationQrPosition: "bottom-right",
@@ -47,8 +47,8 @@ const sessions = [{
 }] as ClassSession[];
 
 test("폴더·슬라이드·인사이트를 반환량에 선형인 단일 인덱스로 집계한다", () => {
-  const folders = [{ id: "folder-1", name: "프런트엔드", createdAt: "2026-08-01T00:00:00.000Z", colorIndex: 1 }] satisfies ClassFolder[];
-  const unfiled = { id: "unfiled", name: "미분류", createdAt: "", colorIndex: 2 } satisfies ClassFolder;
+  const folders = [{ id: "folder-1", name: "프런트엔드", createdAt: "2026-08-01T00:00:00.000Z", purpose: "qa", colorIndex: 1 }] satisfies ClassFolder[];
+  const unfiled = { id: "unfiled", name: "미분류", createdAt: "", purpose: "qa", colorIndex: 2 } satisfies ClassFolder;
 
   assert.deepEqual(groupQuestionsBySlide(sessions[0].questions).get(0)?.map(({ id }) => id), ["old"]);
   assert.deepEqual(summarizeFolders(folders, sessions, unfiled), [{
