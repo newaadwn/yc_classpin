@@ -31,7 +31,7 @@ export function contentCanvasRows(scopes:AnalysisScope[]){
   const count=scope.session.questions.filter(q=>q.slideIndex===page).length;
   if(!owner.has(slide.id)||count>owner.get(slide.id)!.count)owner.set(slide.id,{index,count});
  }));
- return scopes.flatMap((scope,index)=>{
+ return scopes.flatMap<{id:string;slideId?:string;bucket:string}>((scope,index)=>{
   const slides=scope.session.slides.filter(slide=>owner.get(slide.id)?.index===index);
   return slides.length?slides.map(slide=>({id:`scope-${index}:${slide.id}`,slideId:slide.id,bucket:scope.name})): [{id:`scope-empty-${index}`,slideId:undefined,bucket:scope.name}];
  });
