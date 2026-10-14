@@ -1,3 +1,4 @@
+import {analyzedSectors} from '@/app/(view)/admin/session/[id]/qa-studio/analyzed-sectors';
 import type {ClassSession} from '@/app/_model/types';
 import {condenseQuestions,embeddingCandidates,expandEdges,type CondensedGroup} from '@/app/_model/question-condense';
 import {sectorFor,type Sector} from '@/app/_model/question-map';
@@ -21,6 +22,12 @@ export async function generateBundle(source:ClassSession,options:GenerationOptio
  // Preserve original page indices and pin coordinates even for future category scopes.
  session.questions=session.questions.filter(q=>pages.has(session.slides[q.slideIndex]?.id));
  const sectors=Object.fromEntries(session.slides.map(slide=>[slide.id,sectionsForPage(session,slide.id).map(s=>({id:s.id,name:s.title,x:s.x,y:s.y,w:s.width,h:s.height}))]));
+ if(source.id==='soi-demo'){
+  signal.throwIfAborted();
+  const demoSectors=analyzedSectors(session);
+  const groups=condenseQuestions(session.questions,{regionOf:q=>sectorFor(q,demoSectors[session.slides[q.slideIndex]?.id]??[])});
+  return {version:1,id:crypto.randomUUID(),createdAt:new Date().toISOString(),session,scope,options,groups,sectors:demoSectors,status:'데모 · 샘플 영역 레이블과 규칙 기반 질문 묶음 · 실제 AI 분석 아님'};
+ }
  progress('질문 원문과 강사의 분리 설정을 확인하고 있습니다.');
  const triage=await fetchQuestionTriage(session.questions.map(q=>q.id));signal.throwIfAborted();
  const candidates=embeddingCandidates(session.questions);let edges:Parameters<typeof expandEdges>[1]=[];
