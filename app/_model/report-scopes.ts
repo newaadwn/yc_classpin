@@ -9,12 +9,6 @@ export function reportScopes(session:ClassSession,groups:CondensedGroup[],sector
  session.slides.forEach((slide,page)=>{
   const qs=session.questions.filter(q=>q.slideIndex===page);
   if(mode==='content'){
-   // SOI page taxonomy is a fixed demo annotation, distinct from pin-level regions.
-   if((session.id==='soi-demo'||session.id==='f7767d0a-14a7-4b1c-bd3d-fc50a8691d68')&&session.slides.length===15){
-    const names=['시장·사용자 문제','기존 서비스의 한계','해결방안·핵심 기술','사업화·검증'];
-    const topics=[2,0,0,1,1,2,2,3,3,3,2,3,3,3,2];
-    add(names[topics[slide.pageIndex]??2],page,qs.map(q=>q.id));return;
-   }
    const regions=sectors[slide.id]??[];
    regions.forEach(r=>add(r.name.trim(),page,qs.filter(q=>sectorFor(q,regions)===r.id).map(q=>q.id)));
    const other=qs.filter(q=>!sectorFor(q,regions));if(!regions.length||other.length)add('내용 미분류',page,other.map(q=>q.id));
@@ -27,5 +21,18 @@ export function reportScopes(session:ClassSession,groups:CondensedGroup[],sector
   const pages=[...b.pages].sort((a,b)=>a-b);const reindex=(q:ClassSession['questions'][number])=>({...q,slideIndex:pages.indexOf(q.slideIndex)});
   const questions=session.questions.filter(q=>b.ids.has(q.id)).map(reindex);
   return {name,session:{...session,slides:pages.map(i=>session.slides[i]),questions},groups:groups.flatMap(g=>{const rows=g.questions.filter(q=>b.ids.has(q.id)).map(reindex);return rows.length?[{...g,page:pages.indexOf(g.page),questions:rows,representative:rows.find(q=>q.id===g.representative.id)??rows[0]}]:[]})};
+ });
+}
+
+/** Display ownership does not alter category evidence. */
+export function contentCanvasRows(scopes:AnalysisScope[]){
+ const owner=new Map<string,{index:number;count:number}>();
+ scopes.forEach((scope,index)=>scope.session.slides.forEach((slide,page)=>{
+  const count=scope.session.questions.filter(q=>q.slideIndex===page).length;
+  if(!owner.has(slide.id)||count>owner.get(slide.id)!.count)owner.set(slide.id,{index,count});
+ }));
+ return scopes.flatMap((scope,index)=>{
+  const slides=scope.session.slides.filter(slide=>owner.get(slide.id)?.index===index);
+  return slides.length?slides.map(slide=>({id:`scope-${index}:${slide.id}`,slideId:slide.id,bucket:scope.name})): [{id:`scope-empty-${index}`,slideId:undefined,bucket:scope.name}];
  });
 }
