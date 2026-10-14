@@ -15,3 +15,11 @@ test('preserves categories and evidence while rendering each page once',()=>{
  assert.equal(slides.length,3);assert.equal(new Set(slides).size,3);assert.equal(JSON.stringify(scopes),before);
  assert.deepEqual(scopes.flatMap(s=>s.session.questions.map(q=>q.id)).sort(),['a','b']);
 });
+
+test('SOI slides use broad page topics, preserving all 15 pages and questions once',()=>{
+ const demo={...session,id:'soi-demo',slides:Array.from({length:15},(_,i)=>({id:`p${i}`,pageIndex:i}))} as ClassSession;
+ const sectors=Object.fromEntries(demo.slides.map(s=>[s.id,Array.from({length:3},(_,i)=>({id:`r${i}`,name:`${s.id}-region-${i}`,x:0,y:0,w:1,h:1}))]));
+ const scopes=reportScopes(demo,[],sectors,'content');assert.equal(scopes.length,4);
+ assert.equal(scopes.flatMap(s=>s.session.slides).length,15);assert.equal(new Set(contentCanvasRows(scopes).map(r=>r.slideId)).size,15);
+ assert.deepEqual(scopes.flatMap(s=>s.session.questions.map(q=>q.id)).sort(),['a','b']);
+});

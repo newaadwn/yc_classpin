@@ -1,3 +1,4 @@
+import {contentTopics,pageTopic} from './soi-page-topics.ts';
 import type {ClassSession} from './types.ts';
 import type {CondensedGroup} from './question-condense.ts';
 import {mapType,sectorFor,typeNames,type MapMode,type Sector} from './question-map.ts';
@@ -9,6 +10,8 @@ export function reportScopes(session:ClassSession,groups:CondensedGroup[],sector
  session.slides.forEach((slide,page)=>{
   const qs=session.questions.filter(q=>q.slideIndex===page);
   if(mode==='content'){
+   const topic=pageTopic(session,slide.pageIndex);
+   if(topic!==4){add(contentTopics[topic],page,qs.map(q=>q.id));return;}
    const regions=sectors[slide.id]??[];
    regions.forEach(r=>add(r.name.trim(),page,qs.filter(q=>sectorFor(q,regions)===r.id).map(q=>q.id)));
    const other=qs.filter(q=>!sectorFor(q,regions));if(!regions.length||other.length)add('내용 미분류',page,other.map(q=>q.id));
