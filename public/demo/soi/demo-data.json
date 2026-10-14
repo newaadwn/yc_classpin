@@ -1,0 +1,392 @@
+{
+  "title": "뉴던 PPT-압축됨",
+  "slides": [
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 0,
+      "image": "slides/slide-01.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 1,
+      "image": "slides/slide-02.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 2,
+      "image": "slides/slide-03.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 3,
+      "image": "slides/slide-04.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 4,
+      "image": "slides/slide-05.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 5,
+      "image": "slides/slide-06.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 6,
+      "image": "slides/slide-07.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 7,
+      "image": "slides/slide-08.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 8,
+      "image": "slides/slide-09.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 9,
+      "image": "slides/slide-10.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 10,
+      "image": "slides/slide-11.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 11,
+      "image": "slides/slide-12.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 12,
+      "image": "slides/slide-13.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 13,
+      "image": "slides/slide-14.jpg"
+    },
+    {
+      "width": null,
+      "height": null,
+      "pageIndex": 14,
+      "image": "slides/slide-15.jpg"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-001",
+      "text": "이렇게 성장한다고 생각한 이유가 뭔가요?",
+      "anchor": {
+        "x": 0.5217516110975557,
+        "y": 0.4661146691842515
+      },
+      "status": "answered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:27:16.663602+09:00",
+      "anchorKind": "point",
+      "slideIndex": 1,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-002",
+      "text": "근거가 부족한 거 같아요",
+      "anchor": {
+        "x": 0.31782756591506034,
+        "y": 0.36813298971702685
+      },
+      "status": "answered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:27:35.843495+09:00",
+      "anchorKind": "point",
+      "slideIndex": 2,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-003",
+      "text": "좀 더 다양한 근거자료가 있었으면 좋겠습니다.",
+      "anchor": {
+        "x": 0.31966471947526304,
+        "y": 0.5493990967313924
+      },
+      "status": "unanswered",
+      "category": "example",
+      "createdAt": "2026-09-03T09:28:14.32577+09:00",
+      "anchorKind": "point",
+      "slideIndex": 2,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-004",
+      "text": "표본이 좀 더 많아야 할 거 같아요.",
+      "anchor": {
+        "x": 0.15523947583712486,
+        "y": 0.520004592891225
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:28:42.246061+09:00",
+      "anchorKind": "point",
+      "slideIndex": 4,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-005",
+      "text": "\"태깅하면 참여\" 흐름이 정말 부담을 줄여줄까요?",
+      "anchor": {
+        "x": 0.6687238959137686,
+        "y": 0.8988670868311602
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:29:36.030999+09:00",
+      "anchorKind": "point",
+      "slideIndex": 5,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-006",
+      "text": "이거 두개를 선정한 이유는 무엇인가요?",
+      "anchor": {
+        "x": 0.6016677909663715,
+        "y": 0.3142430660100533
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:31:00.843855+09:00",
+      "anchorKind": "point",
+      "slideIndex": 10,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-007",
+      "text": "여기도 이거 두개를 선정한 이유가 무엇인가요?",
+      "anchor": {
+        "x": 0.4877642702338065,
+        "y": 0.766591819550407
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:31:15.945343+09:00",
+      "anchorKind": "point",
+      "slideIndex": 10,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-008",
+      "text": "어떻게 측정한 건가요?",
+      "anchor": {
+        "x": 0.525425918217961,
+        "y": 0.47754586512209435
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:31:58.32037+09:00",
+      "anchorKind": "point",
+      "slideIndex": 11,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-009",
+      "text": "어떻게 측정한 건가요?",
+      "anchor": {
+        "x": 0.5272630717781637,
+        "y": 0.2995458140899696
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:32:10.730744+09:00",
+      "anchorKind": "point",
+      "slideIndex": 11,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-010",
+      "text": "반응을 하려면 처음 게시물을 올리는 사람이 있어야 할텐데, 그 부분은 어떻게 해결할 건가요?",
+      "anchor": {
+        "x": 0.38029078696195084,
+        "y": 0.8547753310709091
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:33:45.929102+09:00",
+      "anchorKind": "point",
+      "slideIndex": 4,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-011",
+      "text": "왜 참여동기가 부족하다고 생각하시나요?",
+      "anchor": {
+        "x": 0.5189958807572518,
+        "y": 0.2587201143119594
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:34:06.300041+09:00",
+      "anchorKind": "point",
+      "slideIndex": 3,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-012",
+      "text": "깊은 인간관계와 넓은 인간관계의 차이가 무엇일까요?",
+      "anchor": {
+        "x": 0.8276376788712988,
+        "y": 0.4873440330688168
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:34:55.749427+09:00",
+      "anchorKind": "point",
+      "slideIndex": 2,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-013",
+      "text": "빠르게 성장한다는 것을 어떻게 판단했죠?",
+      "anchor": {
+        "x": 0.6742353565943766,
+        "y": 0.8580413870531499
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:36:06.784884+09:00",
+      "anchorKind": "point",
+      "slideIndex": 1,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-014",
+      "text": "이 구조는 어떻게 도출해낸 것인지 알 수 있을까요?",
+      "anchor": {
+        "x": 0.6191207497882968,
+        "y": 0.3158760940011737
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:37:57.585004+09:00",
+      "anchorKind": "point",
+      "slideIndex": 4,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-015",
+      "text": "특정 지점을 태그해서 표현할 수 있는 더 확실한 예시가 있었으면 좋겠다.",
+      "anchor": {
+        "x": 0.18555250958046876,
+        "y": 0.6735092240565436
+      },
+      "status": "unanswered",
+      "category": "concept",
+      "createdAt": "2026-09-03T09:39:38.436418+09:00",
+      "anchorKind": "point",
+      "slideIndex": 6,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-016",
+      "text": "AI로 만든 이미지보다 그래도 직접 프로토타입을 만드는 게 낫지 않을까요?",
+      "anchor": {
+        "x": 0.8120218736095761,
+        "y": 0.5510321247225128
+      },
+      "status": "unanswered",
+      "category": "important",
+      "createdAt": "2026-09-03T09:40:21.678674+09:00",
+      "anchorKind": "point",
+      "slideIndex": 7,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-017",
+      "text": "유료 커뮤니티를 어떤 식으로 SOI로 구축하겠다는 것인지 이해가 잘 되지 않습니다.",
+      "anchor": {
+        "x": 0.4491840454695506,
+        "y": 0.47754586512209435
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-03T09:41:00.415838+09:00",
+      "anchorKind": "point",
+      "slideIndex": 8,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-018",
+      "text": "[로컬 QA] 이 슬라이드의 SOi 서비스가 무엇인지 설명해 주세요.",
+      "anchor": {
+        "x": 0.16275876099893188,
+        "y": 0.2878198752147572
+      },
+      "status": "answered",
+      "category": "why",
+      "createdAt": "2026-09-11T21:00:26.497238+09:00",
+      "anchorKind": "point",
+      "slideIndex": 0,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-019",
+      "text": "조사 출처가 어떻게 되죠?",
+      "anchor": {
+        "x": 0.7540435797049867,
+        "y": 0.2530978117585025
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-15T17:26:09.393332+09:00",
+      "anchorKind": "point",
+      "slideIndex": 2,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-020",
+      "text": "출처가 어떻게 되나요",
+      "anchor": {
+        "x": 0.5623245145727054,
+        "y": 0.41901748835574304
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-15T19:22:17.024378+09:00",
+      "anchorKind": "point",
+      "slideIndex": 1,
+      "reactionCount": 0
+    },
+    {
+      "id": "q-021",
+      "text": "문제정의에서 71% 라는 수치는 어떻게 나온거죠?",
+      "anchor": {
+        "x": 0.431348123541741,
+        "y": 0.721047543720889
+      },
+      "status": "unanswered",
+      "category": "why",
+      "createdAt": "2026-09-22T19:13:06.122584+09:00",
+      "anchorKind": "point",
+      "slideIndex": 2,
+      "reactionCount": 0
+    }
+  ],
+  "sourceFile": "뉴던 PPT-압축됨.pdf"
+}

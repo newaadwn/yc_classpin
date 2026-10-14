@@ -20,23 +20,28 @@ export function useFolderController() {
   const searchParams = useSearchParams();
   const folderId = id === "unfiled" ? null : id;
   const { t } = useLanguage();
-  const { folders, sessions, deleteSession, moveSessionToFolder, ready } = useSessions();
+  const { folders, sessions, deleteSession, moveSessionToFolder, setStatus, ready } = useSessions();
   const inputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<PageTab>(() => searchParams.get("tab") === "insights" ? "insights" : "materials");
   const [view, setView] = useState<View>("grid");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [query, setQuery] = useState("");
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [liveStartingId, setLiveStartingId] = useState<string | null>(null);
+  const [liveStartError, setLiveStartError] = useState<string | null>(null);
+  const liveStartingRef = useRef(false);
   const [movingId, setMovingId] = useState<string | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ClassSession | null>(null);
   const [deletingSession, setDeletingSession] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const { phase, uploadPct, error: uploadError, slides, total, showPreview, busy, start } = useSlideUpload(folderId);
+  const { phase, uploadPct, error: uploadError, slides, total, showPreview, busy, start,openSetup,setup } = useSlideUpload(folderId);
 
   const folder = folderId === null ? { id: "unfiled", name: t("folders.unfiled") } : folders.find((item) => item.id === folderId);
   const scopedSessions = useMemo(() => sessions.filter((session) => session.folderId === folderId), [folderId, sessions]);
   const searchIndex = useMemo(() => buildMaterialSearchIndex(scopedSessions), [scopedSessions]);
   const visibleSessions = useMemo(() => searchMaterialIndex(searchIndex, query), [query, searchIndex]);
+  const selectedSession = scopedSessions.find((session) => session.id === selectedSessionId) ?? null;
 
   const pick = (file?: File) => {
     if (inputRef.current) inputRef.current.value = "";
@@ -81,6 +86,29 @@ export function useFolderController() {
     }
   };
 
+  const startLive = async (session: ClassSession) => {
+    if (liveStartingRef.current) return;
+    const presentation = window.open("", "_blank");
+    if (!presentation) {
+      setLiveStartError(t("folders.startLiveError"));
+      return;
+    }
+    liveStartingRef.current = true;
+    setLiveStartingId(session.id);
+    setLiveStartError(null);
+    try {
+      if (session.status !== "live") await setStatus(session.id, "live");
+      presentation.location.replace(`/admin/session/${session.id}/present`);
+    } catch (error) {
+      presentation.close();
+      console.error("Class live start failed", error);
+      setLiveStartError(t("folders.startLiveError"));
+    } finally {
+      liveStartingRef.current = false;
+      setLiveStartingId(null);
+    }
+  };
+
   return {
     t,
     folderId,
@@ -95,6 +123,13 @@ export function useFolderController() {
     toggleSidebar: () => setSidebarOpen((open) => !open),
     query,
     setQuery,
+    selectedSession,
+    selectSession: (sessionId: string) => {
+      setSelectedSessionId(sessionId);
+      setLiveStartError(null);
+    },
+    liveStartingId,
+    liveStartError,
     movingId,
     moveError,
     deleteTarget,
@@ -111,11 +146,13 @@ export function useFolderController() {
     scopedSessions,
     visibleSessions,
     pick,
-    requestUpload: () => inputRef.current?.click(),
+    setup,
+    requestUpload: () => openSetup(()=>inputRef.current?.click()),
     move,
     openDelete,
     closeDelete,
-    confirmDelete
+    confirmDelete,
+    startLive
   };
 }
 

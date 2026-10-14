@@ -1,5 +1,6 @@
 "use client";
 
+import {AnalysisSetupDialog} from "@/app/component/analysis-settings";
 import { AdminShell } from "@/app/component/admin-shell";
 import { LoadingScreen } from "@/app/component/loading-screen";
 import { FileText, MessageCircleQuestion, Plus, Search, Upload } from "@/app/component/icons";
@@ -12,13 +13,14 @@ import styles from "./page.module.css";
 export default function MaterialsPage() {
   const {
     t, ready, inputRef, sessions, filter, setFilter, query, setQuery, filters, phase, uploadPct,
-    uploadError, slides, total, showPreview, busy, visible, pick, requestUpload, openSession
+    uploadError, slides, total, showPreview, busy, visible, pick, requestUpload, openSession, setup
   } = useMaterialsController();
 
   if (!ready) return <LoadingScreen />;
 
   return (
     <AdminShell>
+      {setup&&<AnalysisSetupDialog {...setup}/>}
       <div className={`${styles.root} admin-page`}>
         <input ref={inputRef} type="file" accept=".pdf,.ppt,.pptx" hidden onChange={(event) => pick(event.target.files?.[0])} />
         <div className="page-head">

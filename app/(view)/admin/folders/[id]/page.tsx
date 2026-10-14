@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, BarChart3, FileText, Folder, Grid2X2, List, MessageCircleQuestion, Trash2, X } from "@/app/component/icons";
+import { ArrowLeft, ArrowRight, BarChart3, FileText, Folder, Grid2X2, List, MessageCircleQuestion, Play, Trash2, X } from "@/app/component/icons";
 import { AdminSearch } from "@/app/component/admin-search";
+import { useLanguage } from "@/app/_controller/language-context";
 import { FolderMaterialCard } from "./component/folder-material-card";
 import { AiReportBuilder } from "./component/ai-report-builder";
 import { AiReportHistory } from "./component/ai-report-history";
@@ -15,17 +16,19 @@ import { SlidePreview } from "@/app/component/slide-preview";
 import { StatusBadge } from "@/app/component/status-badge";
 import { UploadProgress } from "@/app/component/upload-progress";
 import { WorkspaceHeader } from "@/app/component/workspace-header";
-import { heatLevel } from "@/app/_model/stats";
+import { countBy, heatLevel } from "@/app/_model/stats";
 import { questionCategoryClass, questionMarkerEmoji, type ClassSession } from "@/app/_model/types";
 import { useFolderController, useFolderInsightsController } from "./controller";
 import styles from "./page.module.css";
+import {AnalysisSetupDialog} from '@/app/component/analysis-settings';
 
 export default function FolderPage() {
   const {
     t, folderId, folders, ready, inputRef, tab, setTab, view, setView, sidebarOpen, toggleSidebar,
-    query, setQuery, movingId, moveError, deleteTarget, deletingSession, deleteError,
+    query, setQuery, selectedSession, selectSession, liveStartingId, liveStartError,
+    movingId, moveError, deleteTarget, deletingSession, deleteError,
     phase, uploadPct, uploadError, slides, total, showPreview, busy, folder, scopedSessions,
-    visibleSessions, pick, requestUpload, move, openDelete, closeDelete, confirmDelete
+    visibleSessions, pick, requestUpload, move, openDelete, closeDelete, confirmDelete,setup,startLive
   } = useFolderController();
 
   if (!ready) return <LoadingScreen />;
@@ -44,6 +47,7 @@ export default function FolderPage() {
 
   return (
     <main className={`${styles.root} folder-workspace folder-dashboard-shell folder-detail-shell ${sidebarOpen ? "" : "sidebar-collapsed"}`}>
+      {setup && <AnalysisSetupDialog {...setup} />}
       <FolderTreeSidebar folders={folders} open={sidebarOpen} activeFolderId={folderId} onToggle={toggleSidebar} />
       <div className="folder-dashboard-content">
         <WorkspaceHeader spacer />
@@ -83,20 +87,23 @@ export default function FolderPage() {
               </div>
             </div>
 
-            {visibleSessions.length ? (
-              <div className={`folder-materials ${view}`}>
-                {visibleSessions.map((session) => (
-                  <FolderMaterialCard key={session.id} session={session} folders={folders} view={view} moving={movingId === session.id} onMove={(nextFolderId) => void move(session.id, nextFolderId)} onDelete={() => openDelete(session)} />
-                ))}
-              </div>
-            ) : (
-              <div className="panel folder-empty">
-                <MessageCircleQuestion />
-                <b>{scopedSessions.length ? t("materials.noMatch") : t("materials.none")}</b>
-                <span>{scopedSessions.length ? t("materials.changeSearch") : t("folders.emptyFolderHint")}</span>
-                {!scopedSessions.length && <button type="button" className="btn primary folder-detail-upload-button" onClick={requestUpload} disabled={busy}>{busy ? <span className="spinner" /> : <Image src="/assets/icons/upload_icon.svg" alt="" width={24} height={17} />}{busy ? t("materials.converting") : t("materials.upload")}</button>}
-              </div>
-            )}
+            <div className="folder-material-workspace">
+              {visibleSessions.length ? (
+                <div className={`folder-materials ${view}`}>
+                  {visibleSessions.map((session) => (
+                    <FolderMaterialCard key={session.id} session={session} folders={folders} view={view} moving={movingId === session.id} selected={selectedSession?.id === session.id} onSelect={() => selectSession(session.id)} onMove={(nextFolderId) => void move(session.id, nextFolderId)} onDelete={() => openDelete(session)} />
+                  ))}
+                </div>
+              ) : (
+                <div className="panel folder-empty">
+                  <MessageCircleQuestion />
+                  <b>{scopedSessions.length ? t("materials.noMatch") : t("materials.none")}</b>
+                  <span>{scopedSessions.length ? t("materials.changeSearch") : t("folders.emptyFolderHint")}</span>
+                  {!scopedSessions.length && <button type="button" className="btn primary folder-detail-upload-button" onClick={requestUpload} disabled={busy}>{busy ? <span className="spinner" /> : <Image src="/assets/icons/upload_icon.svg" alt="" width={24} height={17} />}{busy ? t("materials.converting") : t("materials.upload")}</button>}
+                </div>
+              )}
+              {!!scopedSessions.length && <MaterialDetail session={selectedSession} starting={liveStartingId === selectedSession?.id} error={liveStartError} onStartLive={startLive} />}
+            </div>
           </section>
         ) : (
           <FolderInsights key={scopedSessions.map((session) => session.id).join("|")} sessions={scopedSessions} folderId={folderId} />
@@ -125,6 +132,50 @@ export default function FolderPage() {
   );
 }
 
+function MaterialDetail({ session, starting, error, onStartLive }: {
+  session: ClassSession | null;
+  starting: boolean;
+  error: string | null;
+  onStartLive: (session: ClassSession) => Promise<void>;
+}) {
+  const { t } = useLanguage();
+
+  if (!session) {
+    return (
+      <aside id="folder-material-detail" className="folder-material-detail empty" aria-label={t("folders.materialDetail")}>
+        <FileText />
+        <h2>{t("folders.selectMaterialTitle")}</h2>
+        <p>{t("folders.selectMaterialHint")}</p>
+      </aside>
+    );
+  }
+
+  const unanswered = countBy(session.questions, "unanswered");
+  return (
+    <aside id="folder-material-detail" className="folder-material-detail" aria-labelledby="folder-material-detail-title">
+      <div className="material-detail-head">
+        <h2 id="folder-material-detail-title">{t("folders.materialDetail")}</h2>
+        <span className={`material-detail-status ${session.status}`}><i />{t(session.status === "live" ? "session.liveLabel" : "session.stoppedLabel")}</span>
+      </div>
+      <div className="material-detail-thumb">{session.slides[0] ? <SlideCanvas slide={session.slides[0]} compact /> : <FileText />}</div>
+      <div className="material-detail-copy">
+        <h3 title={session.title}>{session.title}</h3>
+        <p><span>{t("folders.fileName")}</span>{session.fileName}</p>
+      </div>
+      <dl className="material-detail-stats">
+        <div><dt>{t("common.slide")}</dt><dd>{session.slides.length}</dd></div>
+        <div><dt>{t("common.question")}</dt><dd>{session.questions.length}</dd></div>
+        <div><dt>{t("status.unanswered")}</dt><dd>{unanswered}</dd></div>
+      </dl>
+      <div className="material-detail-actions"><Link className="btn secondary" href={`/admin/session/${session.id}/qa-studio`}>QA Studio · 분석</Link><Link className="btn secondary" href={`/admin/session/${session.id}/report?generate=1`}>결과리포트 생성</Link>
+        <Link className="btn secondary" href={`/admin/session/${session.id}`}><FileText />{t("folders.openSlides")}</Link>
+        <button type="button" className="btn primary" disabled={starting} onClick={() => void onStartLive(session)}>{starting ? <span className="spinner" /> : <Play />}{starting ? t("folders.startingLive") : t("folders.startLive")}</button>
+      </div>
+      {error && <p className="material-detail-error" role="alert">{error} {t("common.tryAgain")}</p>}
+    </aside>
+  );
+}
+
 function FolderInsights({ sessions, folderId }: { sessions: ClassSession[]; folderId: string | null }) {
   const {
     t, timeAgo, selectedScope, setScope, questions, settingsFor, categoryLabel, unanswered,
@@ -135,6 +186,12 @@ function FolderInsights({ sessions, folderId }: { sessions: ClassSession[]; fold
     <section id="folder-insights-panel" role="tabpanel" aria-labelledby="folder-insights-tab" className="folder-insights">
       <AiReportBuilder sessions={sessions} folderId={folderId} />
       <AiReportHistory />
+      <section className="panel" aria-label="의미 기반 질문 보고서">
+        <h2>강의 후 의미 기반 질문 보고서</h2>
+        <p>실제 저장된 질문과 검토된 영역 레이블로 분석 초안을 확인합니다.</p>
+        {sessions.map(session => <p key={session.id}><Link href={`/admin/session/${session.id}/report?generate=1`}>{session.title} · 결과리포트 생성 →</Link></p>)}
+        {!sessions.length && <p>자료를 추가하면 보고서를 확인할 수 있습니다.</p>}
+      </section>
       <div className="folder-insight-scopes" role="group" aria-label={t("folders.insightScope")}>
         <button type="button" aria-pressed={selectedScope === "all"} onClick={() => setScope("all")}>{t("folders.insightAll")}</button>
         {sessions.map((session) => (

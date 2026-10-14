@@ -1,0 +1,28 @@
+.root { position: relative; width: 100%; min-width: 0; }
+.explorerRoot { position: relative; width: 100%; min-width: 0; }
+:global(.stage-canvas-wrap) > .explorerRoot { align-self: stretch; height: 100%; min-height: 0; overflow: hidden; }
+:global(.class-presentation-canvas) > .explorerRoot { width: 100%; max-height: 90dvh; overflow: auto; }
+:global(.class-presentation-canvas) > .root { width: min(100vw, calc(100dvh * 16 / 9)); aspect-ratio: 16 / 9; }
+.toggle { position: absolute; top: 12px; left: 12px; z-index: 8; padding: 10px 14px; border-radius: 20px; border: 1px solid var(--color-border); background: var(--color-bg-surface); color: var(--color-text-primary); font-size: 13px; cursor: pointer; }
+.cluster { position: absolute; transform: translate(-50%, -50%); width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--color-bg-surface); background: var(--color-brand); color: var(--color-bg-surface); font-size: 16px; font-weight: 700; z-index: 7; cursor: pointer; box-shadow: var(--shadow-sm); }
+.cluster[aria-expanded=true] { outline: 3px solid var(--color-brand); outline-offset: 3px; }
+.panel { position: absolute; right: 12px; top: 64px; width: min(360px, calc(100% - 24px)); max-height: calc(100% - 76px); overflow: auto; z-index: 15; padding: 16px; background: var(--color-bg-surface); color: var(--color-text-primary); border: 1px solid var(--color-border); border-radius: 16px; box-shadow: var(--shadow-md); font-size: 14px; text-align: left; }
+.panel header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.panel small { display: block; font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; }
+.panel header button { min-width: 40px; min-height: 40px; background: var(--color-bg-page); color: inherit; border: 0; border-radius: 8px; cursor: pointer; font-size: 22px; }
+.panel p { font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); }
+.originals { padding: 10px; width: 100%; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-brand-subtle); color: var(--color-brand); cursor: pointer; }
+.summary { border: 1px solid var(--color-border); border-radius: 10px; padding: 12px; margin-top: 10px; }
+.summary summary { cursor: pointer; line-height: 1.5; overflow-wrap: anywhere; }
+.summary summary b { color: var(--color-brand); margin-right: 8px; }
+.question { display: block; width: 100%; text-align: left; padding: 12px 0; border: 0; border-top: 1px solid var(--color-border); background: transparent; color: inherit; margin-top: 10px; cursor: pointer; overflow-wrap: anywhere; }
+.root button:focus-visible, .summary summary:focus-visible { outline: 3px solid var(--color-brand); outline-offset: 3px; }
+.root :global(.question-pin[data-filter-match=false]) { opacity: .18; }
+.root :global(.question-pin[data-filter-match=true]) { outline: 3px solid var(--color-brand); outline-offset: 4px; z-index: 10; }
+.summary:hover, .summary:focus-within { border-color: var(--color-brand); background: var(--color-brand-subtle); }
+.originals:disabled { cursor: default; opacity: .65; }
+.sectionToggle { position: absolute; top: 12px; right: 12px; z-index: 8; padding: 10px 14px; border-radius: 20px; border: 1px solid var(--color-border); background: var(--color-bg-surface); color: var(--color-brand); cursor: pointer; }
+.panel select { max-width: 100%; padding: 8px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-bg-surface); color: var(--color-text-primary); }
+.sectionOutline { position: absolute; z-index: 4; border: 2px solid var(--color-brand); border-radius: 12px; background: transparent; cursor: pointer; text-align: left; padding: 0; }
+.sectionOutline span { position: absolute; top: 0; left: 0; padding: 4px 8px; max-width: 100%; border-radius: 8px; background: var(--color-bg-surface); color: var(--color-brand); font-size: 12px; overflow-wrap: anywhere; }
+.sectionOutline[aria-pressed=true] { border-width: 4px; box-shadow: inset 0 0 0 2px var(--color-bg-surface); }

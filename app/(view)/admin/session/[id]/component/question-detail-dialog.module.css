@@ -34,3 +34,7 @@
 .close:active{transform:translateY(0)}
 .close svg{width:20px;height:20px}
 @media(max-width:600px){.root{align-items:end;padding:0}.root :global(.question-detail-dialog){width:100%;max-height:calc(100dvh - 20px);overflow-y:auto;padding:26px 20px max(24px,env(safe-area-inset-bottom));border-radius:24px 24px 0 0}.root :global(.question-detail-dialog) h2{font-size:20px}.root :global(.question-detail-question){font-size:15px;line-height:23px}}
+.root.anchored { display: contents; position: static; background: none; backdrop-filter: none; padding: 0; }
+.root.anchored :global(.question-detail-dialog) { width: 100%; padding: 0; border: 0; border-radius: 0; box-shadow: none; max-height: none; overflow: visible; }
+.root.anchored .close { top: 0; right: 0; width: 44px; height: 44px; }
+.root.anchored :global(.question-detail-heading) { min-height: 44px; }

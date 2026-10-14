@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { SessionRuntime } from "@/app/component/session-runtime";
 import { QRCodeSVG } from "qrcode.react";
 import deleteIcon from "@/assets/icons/delete_icon.svg";
 import fileListIcon from "@/assets/icons/file_list_icon.svg";
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Copy, FileText, GripVertical, Link2, ListFilter, MessageCircleQuestion, MonitorUp, PanelLeftClose, PanelLeftOpen, Pause, Play, Plus, QrCode, Search, Share2, Trash2, Users, X } from "@/app/component/icons";
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Copy, FileText, GripVertical, Link2, ListFilter, MessageCircleQuestion, MonitorUp, PanelLeftClose, PanelLeftOpen, Pause, Play, QrCode, Search, Share2, Trash2, Users, X } from "@/app/component/icons";
 import { useLanguage } from "@/app/_controller/language-context";
 import { LoadingScreen } from "@/app/component/loading-screen";
 import { QuestionCard } from "./component/question-card";
@@ -16,20 +17,35 @@ import { MAX_QUESTION_PANEL, MIN_QUESTION_PANEL, useSessionAdminController } fro
 import styles from "./page.module.css";
 import { questionCategoryClass, questionCategoryLabel, questionMarkerEmoji, type QuestionCategory } from "@/app/_model/types";
 
+function SessionToggle({ checked, label, onClick }: { checked: boolean; label: string; onClick: () => void }) {
+  return <button
+    type="button"
+    className={`session-toggle ${checked ? "on" : ""}`}
+    role="switch"
+    aria-checked={checked}
+    aria-label={label}
+    onClick={onClick}
+  >
+    <span className="session-toggle-thumb" />
+    <span className="session-toggle-state">{checked ? "ON" : "OFF"}</span>
+  </button>;
+}
+
 export default function SessionAdmin() {
   const { t, categoryLabel: defaultCategoryLabel, timeAgo } = useLanguage();
   const {
     ready, session, slide, folder, folderAccentIndex, folderHref, folderSessions, questionsBySlide, questionCounts, slideQuestions,
-    selected, detailQuestion, visibleQuestions, tab, filter, query, shareOpen, answer, copied,
+    selected, detailQuestion, visibleQuestions, tab, filter, query, shareOpen, mobileQuestionsOpen, answer, copied,
     actionError, lectureSaving, presentationError, folderRailOpen, questionPanelWidth, noteDraft,
-    noteDirty, noteSavingSlideId, noteSavedSlideId, addingSlides, deleteTarget, deletingSlide,
+    noteDirty, noteSavingSlideId, noteSavedSlideId, deleteTarget, deletingSlide,
     deleteSlideError, deleteTargetQuestionCount, joinUrl, playerWorkspaceRef, filmstripRef,
-    slideInputRef, handleSlideWheel, showLive, showQuestions, toggleFolderRail, openShare,
-    closeShare, changeAnswer, changeQuery, changeFilter, openQuestionDetail, closeQuestionDetail,
-    selectQuestionFromList, changeSlide, toggleStatus, toggleQuestionPins,
+    handleSlideWheel, showLive, showQuestions, toggleFolderRail, openShare,
+    closeShare, openMobileQuestions, closeMobileQuestions, changeAnswer, changeQuery, changeFilter, selectQuestion, openQuestionDetail, closeQuestionDetail,
+    selectQuestionFromList, changeSlide, handleSlidePageKeyDown, resetSlidePageInput,
+    toggleStatus, togglePresentationAutoplay, toggleQuestionPins,
     changePresentationQrPlacement,
-    saveQuestionCategories, reportActionError, submitAnswer, resolveSelectedQuestion,
-    saveCurrentSlideNote, changeNoteDraft, saveNoteByKeyboard, addSlideImages, openDeleteSlide,
+    saveQuestionCategories, reportActionError, submitAnswer, resolveDetailQuestion,
+    changeNoteDraft, saveNoteOnBlur, openDeleteSlide,
     closeDeleteSlide, confirmDeleteSlide, startQuestionPanelResize, resizeQuestionPanel,
     finishQuestionPanelResize, cancelQuestionPanelResize, resizeQuestionPanelByKeyboard,
     openPresentation, copyJoinLink, goHome
@@ -40,6 +56,13 @@ export default function SessionAdmin() {
 
   const categoryLabel = (category: QuestionCategory) => questionCategoryLabel(session.questionCategories, category, defaultCategoryLabel);
   const categoryClass = (category: QuestionCategory) => questionCategoryClass(session.questionCategories, category);
+  const noteStatus = noteSavingSlideId === slide.id
+    ? t("session.speakerNotesSaving")
+    : noteDirty
+      ? t("session.speakerNotesPending")
+      : noteSavedSlideId === slide.id
+        ? t("session.speakerNotesSaved")
+        : t("session.speakerNotesAutosaveHint");
   return <>
     <div
       className={`${styles.root} session-admin-shell ${folderRailOpen ? "" : "folder-rail-collapsed"}`}
@@ -63,7 +86,7 @@ export default function SessionAdmin() {
         <div className="workspace-tabs">
           <button className={tab === "live" ? "active" : ""} onClick={showLive}><svg width="17" height="17" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3 2.803a1 1 0 0 1 1.5-.865l9 5.195a1 1 0 0 1 0 1.733l-9 5.196a1 1 0 0 1-1.5-.866z" /></svg>{t("session.livePlayer")}<span>{questionCounts.unanswered}</span></button>
           <button className={tab === "questions" ? "active" : ""} onClick={showQuestions}><MessageCircleQuestion />{t("session.questionList")}<span>{questionCounts.total}</span></button>
-          <div className="top-actions"><span className={`session-state-badge ${session.status}`}><i />{t(session.status === "live" ? "session.liveLabel" : "session.stoppedLabel")}</span><button className="btn secondary" onClick={toggleStatus}>{session.status === "live" ? <><Pause />{t("session.end")}</> : <><Play />{t("session.restart")}</>}</button><button className="btn secondary" onClick={openShare}><Share2 />{t("session.joinLink")}</button><button className="btn primary presentation-launch" onClick={openPresentation} title={t("session.openSlideshow")}><MonitorUp />{t("session.slideshow")}</button></div>
+          <div className="top-actions"><Link className="btn secondary" href={`/admin/session/${session.id}/qa-studio`}>QA Studio</Link><Link className="btn secondary" href={`/admin/session/${session.id}/report`}>결과보고서</Link><SessionRuntime session={session} /><span className={`session-state-badge ${session.status}`}><i />{t(session.status === "live" ? "session.liveLabel" : "session.stoppedLabel")}</span><button className="btn secondary" onClick={toggleStatus}>{session.status === "live" ? <><Pause />{t("session.end")}</> : <><Play />{t("session.restart")}</>}</button><button className="btn secondary" onClick={openShare}><Share2 />{t("session.joinLink")}</button><button className="btn primary presentation-launch" onClick={openPresentation} title={t("session.openSlideshow")}><MonitorUp />{t("session.slideshow")}</button></div>
         </div>
         {presentationError
           ? <div className="login-error" role="alert">{presentationError}</div>
@@ -72,6 +95,10 @@ export default function SessionAdmin() {
         {tab === "live" ? (
           <div className="player-workspace" ref={playerWorkspaceRef}>
             <section className="player-stage">
+              <header className="mobile-remote-heading">
+                <h1>{t("session.mobileRemote")}</h1>
+                <p>{session.title}</p>
+              </header>
               <div className="stage-toolbar">
                 <div className="stage-toolbar-status"><span className={`status-dot ${session.status}`} /><b title={session.title}>{session.title}</b></div>
                 <div className="stage-toolbar-actions">
@@ -90,19 +117,67 @@ export default function SessionAdmin() {
                       <option value="bottom-left">{t("session.qrBottomLeft")}</option>
                     </select>
                   </div>
-                  <input ref={slideInputRef} type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" multiple hidden onChange={addSlideImages} />
-                  <button type="button" className="stage-add-slides" disabled={addingSlides} onClick={() => slideInputRef.current?.click()} title={t("session.addSlidesHint")}>
-                    {addingSlides ? <span className="spinner" /> : <Plus />}
-                    <span>{t(addingSlides ? "session.addingSlides" : "session.addSlides")}</span>
-                  </button>
-                  <button type="button" className="stage-add-slides stage-delete-slide" disabled={session.slides.length <= 1 || addingSlides} onClick={() => openDeleteSlide(slide.id)} title={t(session.slides.length <= 1 ? "session.deleteLastSlideHint" : "session.deleteSlideHint")}>
+                  <span className="stage-autoplay-control">
+                    <span>{t("session.presentationAutoplay")}</span>
+                    <SessionToggle
+                      checked={session.presentationAutoplay}
+                      label={t(session.presentationAutoplay ? "session.turnAutoplayOff" : "session.turnAutoplayOn")}
+                      onClick={togglePresentationAutoplay}
+                    />
+                  </span>
+                  <button type="button" className="stage-slide-action stage-delete-slide" disabled={session.slides.length <= 1} onClick={() => openDeleteSlide(slide.id)} title={t(session.slides.length <= 1 ? "session.deleteLastSlideHint" : "session.deleteSlideHint")}>
                     <span className="stage-delete-icon" style={{ "--stage-delete-icon": `url(${deleteIcon.src})` } as React.CSSProperties} aria-hidden="true" />
                     <span>{t("session.deleteSlide")}</span>
                   </button>
                 </div>
               </div>
               <div className="stage-canvas-wrap" onWheel={handleSlideWheel}><SlideCanvas slide={slide} questions={slideQuestions} questionCategories={session.questionCategories} selectedId={selected?.id} onSelectPin={openQuestionDetail} showPins={session.showQuestionPins} /></div>
-              <div className="player-controls"><button className="icon-btn" disabled={session.currentSlide === 0} onClick={() => changeSlide(session.currentSlide - 1)} aria-label={t("session.previousSlide")}><ChevronLeft /></button><div className="slide-dots">{session.slides.map((_, i) => <button key={i} className={i === session.currentSlide ? "active" : ""} onClick={() => changeSlide(i)} aria-label={t("common.slideNumber", { number: i + 1 })} />)}</div><button className="icon-btn" disabled={session.currentSlide === session.slides.length - 1} onClick={() => changeSlide(session.currentSlide + 1)} aria-label={t("session.nextSlide")}><ChevronRight /></button></div>
+              <nav className="player-controls" aria-label={t("session.slideNavigation")}>
+                <button type="button" className="slide-nav-button" disabled={session.currentSlide === 0} onClick={() => changeSlide(session.currentSlide - 1)} aria-label={t("session.previousSlide")}><ChevronLeft /><span>{t("session.previous")}</span></button>
+                <label className="slide-page-picker">
+                  <span className="sr-only">{t("session.slideNumberInput", { count: session.slides.length })}</span>
+                  <input key={slide.id} type="number" inputMode="numeric" min={1} max={session.slides.length} defaultValue={session.currentSlide + 1} onFocus={(event) => event.currentTarget.select()} onClick={(event) => event.currentTarget.select()} onKeyDown={handleSlidePageKeyDown} onBlur={(event) => resetSlidePageInput(event.currentTarget)} />
+                  <span aria-hidden="true">/ {session.slides.length}</span>
+                </label>
+                <button type="button" className="slide-nav-button" disabled={session.currentSlide === session.slides.length - 1} onClick={() => changeSlide(session.currentSlide + 1)} aria-label={t("session.nextSlide")}><span>{t("session.next")}</span><ChevronRight /></button>
+              </nav>
+              <button type="button" className="mobile-remote-questions" onClick={openMobileQuestions}>
+                <MessageCircleQuestion aria-hidden="true" />
+                <span>{t("session.questionList")}</span>
+                <b>{slideQuestions.length}</b>
+              </button>
+              <section className="mobile-remote-settings" aria-label={t("session.mobileRemoteSettings")}>
+                <div className="mobile-remote-setting">
+                  <span>{t("session.pinLive")}</span>
+                  <SessionToggle
+                    checked={session.showQuestionPins}
+                    label={t(session.showQuestionPins ? "session.turnPinsOff" : "session.turnPinsOn")}
+                    onClick={toggleQuestionPins}
+                  />
+                </div>
+                <div className="mobile-remote-setting">
+                  <span>{t("session.presentationAutoplay")}</span>
+                  <SessionToggle
+                    checked={session.presentationAutoplay}
+                    label={t(session.presentationAutoplay ? "session.turnAutoplayOff" : "session.turnAutoplayOn")}
+                    onClick={togglePresentationAutoplay}
+                  />
+                </div>
+                <div className="mobile-remote-setting">
+                  <label htmlFor="mobile-remote-qr-placement">{t("session.qrPosition")}</label>
+                  <select
+                    id="mobile-remote-qr-placement"
+                    value={session.showPresentationQr ? session.presentationQrPosition : "hidden"}
+                    onChange={(event) => changePresentationQrPlacement(event.target.value)}
+                  >
+                    <option value="hidden">{t("session.qrHidden")}</option>
+                    <option value="top-right">{t("session.qrTopRight")}</option>
+                    <option value="top-left">{t("session.qrTopLeft")}</option>
+                    <option value="bottom-right">{t("session.qrBottomRight")}</option>
+                    <option value="bottom-left">{t("session.qrBottomLeft")}</option>
+                  </select>
+                </div>
+              </section>
               <div className="filmstrip" ref={filmstripRef}>{session.slides.map((item, index) => {
                 const questionCount = questionsBySlide.get(index)?.length ?? 0;
                 return <button key={item.id} className={index === session.currentSlide ? "active" : ""} aria-current={index === session.currentSlide ? "page" : undefined} onClick={() => changeSlide(index)}><SlideCanvas slide={item} compact /><span>{index + 1}</span>{questionCount > 0 && <i>{questionCount}</i>}</button>;
@@ -116,9 +191,9 @@ export default function SessionAdmin() {
                   maxLength={10000}
                   placeholder={t("session.speakerNotesHint")}
                   onChange={(event) => changeNoteDraft(event.target.value)}
-                  onKeyDown={saveNoteByKeyboard}
+                  onBlur={saveNoteOnBlur}
                 />
-                <div className="stage-speaker-note-actions"><span>{noteDraft.length.toLocaleString()} / 10,000 · {t("session.speakerNotesShortcut")}</span><button type="button" className="btn primary speaker-note-save" disabled={!noteDirty || noteSavingSlideId === slide.id} onClick={saveCurrentSlideNote}>{noteSavingSlideId === slide.id ? <><span className="spinner" />{t("session.speakerNotesSaving")}</> : noteSavedSlideId === slide.id && !noteDirty ? <><Check />{t("session.speakerNotesSaved")}</> : <><FileText />{t("session.speakerNotesSave")}</>}</button></div>
+                <div className="stage-speaker-note-actions"><span>{noteDraft.length.toLocaleString()} / 10,000</span><span role="status" aria-live="polite">{noteStatus}</span></div>
               </section>
             </section>
             <aside className="live-questions">
@@ -141,26 +216,14 @@ export default function SessionAdmin() {
                 <div><h2>{t("session.liveQuestions")}</h2><p>{t("common.currentQuestionsCount", { count: slideQuestions.length })}</p></div>
                 <div className="panel-heading-actions">
                   <span className="pulse-dot" aria-hidden="true" />
-                  <button
-                    type="button"
-                    className={`session-toggle ${session.showQuestionPins ? "on" : ""}`}
-                    role="switch"
-                    aria-checked={session.showQuestionPins}
-                    aria-label={session.showQuestionPins ? t("session.turnPinsOff") : t("session.turnPinsOn")}
+                  <SessionToggle
+                    checked={session.showQuestionPins}
+                    label={t(session.showQuestionPins ? "session.turnPinsOff" : "session.turnPinsOn")}
                     onClick={toggleQuestionPins}
-                  >
-                    <span className="session-toggle-thumb" />
-                    <span className="session-toggle-state">{session.showQuestionPins ? "ON" : "OFF"}</span>
-                  </button>
+                  />
                 </div>
                 </div>
-                <div className="question-stack">{slideQuestions.length ? slideQuestions.map((q) => <QuestionCard key={q.id} question={q} questionCategories={session.questionCategories} selected={selected?.id === q.id} onClick={() => openQuestionDetail(q.id)} />) : <div className="no-questions"><MessageCircleQuestion /><b>{t("session.noQuestions")}</b><span>{t("session.noQuestionsHint1")}<br />{t("session.noQuestionsHint2")}</span></div>}</div>
-                {selected && <div className="answer-box">
-                {selected.answer && <div className="saved-answer"><span>{t("session.latestAnswer")}</span><p>{selected.answer}</p></div>}
-                <label htmlFor="answer">{selected.answer ? t("session.additionalAnswer") : t("session.quickAnswer")}</label>
-                <textarea id="answer" value={answer} onChange={(event) => changeAnswer(event.target.value)} placeholder={t("session.answerPlaceholder")} />
-                <div className="answer-actions"><button className="btn tertiary" onClick={resolveSelectedQuestion}><Check />{t("session.resolve")}</button><button className="btn primary" onClick={submitAnswer}>{t("session.sendAnswer")}</button></div>
-                </div>}
+                <div className="question-stack">{slideQuestions.length ? slideQuestions.map((q) => <QuestionCard key={q.id} question={q} selected={selected?.id === q.id} questionCategories={session.questionCategories} onClick={() => selectQuestion(q.id)} />) : <div className="no-questions"><MessageCircleQuestion /><b>{t("session.noQuestions")}</b><span>{t("session.noQuestionsHint1")}<br />{t("session.noQuestionsHint2")}</span></div>}</div>
             </aside>
           </div>
         ) : (
@@ -179,7 +242,12 @@ export default function SessionAdmin() {
         )}
       </main>
 
-      {detailQuestion && <QuestionDetailDialog question={detailQuestion} questionCategories={session.questionCategories} onClose={closeQuestionDetail} />}
+      {detailQuestion && <QuestionDetailDialog
+        question={detailQuestion}
+        questionCategories={session.questionCategories}
+        onClose={closeQuestionDetail}
+        answerEditor={<div><label htmlFor="instructor-answer">강사 답변</label><textarea id="instructor-answer" value={answer} onChange={event=>changeAnswer(event.target.value)} placeholder="답변을 입력하세요" rows={3} style={{width:'100%'}} />{actionError&&<p role="alert">{actionError}</p>}<button type="button" className="btn secondary" onClick={resolveDetailQuestion}>해결 처리</button><button type="button" className="btn primary" disabled={!answer.trim()} onClick={submitAnswer}>답변 전송</button></div>}
+      />}
       {deleteTarget && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeDeleteSlide(); }}>
         <section className="delete-slide-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-slide-title" aria-describedby="delete-slide-description">
           <button type="button" className="modal-close" disabled={deletingSlide} onClick={closeDeleteSlide} aria-label={t("common.cancel")}><X /></button>
@@ -196,6 +264,13 @@ export default function SessionAdmin() {
         </section>
       </div>}
       {shareOpen && <div className="modal-backdrop" onMouseDown={closeShare}><div className="share-modal" onMouseDown={(event) => event.stopPropagation()}><button className="modal-close" onClick={closeShare} aria-label={t("question.closeDetail")}><X /></button><div className="modal-icon"><Users /></div><h2>{t("session.inviteTitle")}</h2><p>{t("session.inviteDescription1")}<br />{t("session.inviteDescription2")}</p><div className="qr-frame"><QRCodeSVG value={joinUrl} size={180} fgColor="#171D26" /></div><div className="session-code"><span>{t("session.joinCode")}</span><b>{session.code}</b></div><div className="link-copy"><Link2 /><span>{joinUrl}</span><button onClick={copyJoinLink} aria-label={t("session.copyJoinLink")}>{copied ? <Check /> : <Copy />}</button></div><button className="btn primary large full" onClick={copyJoinLink}>{copied ? <><Check />{t("session.copied")}</> : <><Copy />{t("session.copyJoinLink")}</>}</button></div></div>}
+      {mobileQuestionsOpen && <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeMobileQuestions(); }}>
+        <section className="mobile-questions-sheet" role="dialog" aria-modal="true" aria-labelledby="mobile-questions-title">
+          <button type="button" className="modal-close" onClick={closeMobileQuestions} aria-label={t("session.closeQuestions")}><X /></button>
+          <div className="panel-heading"><div><h2 id="mobile-questions-title">{t("session.liveQuestions")}</h2><p>{t("common.currentQuestionsCount", { count: slideQuestions.length })}</p></div></div>
+          <div className="question-stack">{slideQuestions.length ? slideQuestions.map((q) => <QuestionCard key={q.id} question={q} selected={selected?.id === q.id} questionCategories={session.questionCategories} onClick={() => { selectQuestion(q.id); closeMobileQuestions(); }} />) : <div className="no-questions"><MessageCircleQuestion /><b>{t("session.noQuestions")}</b><span>{t("session.noQuestionsHint1")}<br />{t("session.noQuestionsHint2")}</span></div>}</div>
+        </section>
+      </div>}
     </div>
   </>;
 }

@@ -1,0 +1,326 @@
+/* 참여자 하단 도구 막대 — 화상회의 앱의 하단 컨트롤처럼 가운데 둥근 버튼, 파란 질문하기, 빨간 나가기, 오른쪽 목록 토글. */
+.bar {
+  position: relative;
+  z-index: 30;
+  flex: 0 0 auto;
+  min-height: 80px;
+  padding: 12px max(16px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  color: var(--pin-neutral-100);
+}
+
+.center { grid-column: 2; position: relative; display: flex; align-items: center; gap: 8px; }
+.side { grid-column: 3; justify-self: end; position: relative; display: flex; align-items: center; gap: 8px; }
+
+.round,
+.leave,
+.ask,
+.group button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  color: var(--pin-neutral-100);
+  cursor: pointer;
+  transition: background-color 140ms, color 140ms;
+}
+
+.round {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 999px;
+  background: var(--pin-neutral-800);
+}
+
+.round:hover { background: var(--pin-neutral-700); }
+.round[aria-pressed="true"],
+.round[aria-expanded="true"] { background: var(--pin-blue-200); color: var(--pin-neutral-950); }
+.round svg, .leave svg, .ask svg { width: 22px; height: 22px; }
+
+/* 페이지 묶음: ‹ [3/15 · LIVE] › — 가운데 칸이 강사 따라가기 상태이자 "LIVE로" 버튼이다. */
+.group {
+  height: 48px;
+  display: flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--pin-neutral-800);
+}
+
+.group button { width: 44px; height: 48px; border-radius: 999px; background: transparent; }
+.group button:hover:not(:disabled) { background: var(--pin-neutral-700); }
+.group button:disabled { cursor: default; opacity: .35; }
+.group button svg { width: 20px; height: 20px; }
+
+.group .live { width: 68px; display: flex; flex-direction: column; justify-content: center; gap: 1px; background: rgba(255, 255, 255, .08); }
+.group .live.following { cursor: default; background: transparent; }
+.group .live.following:hover { background: transparent; }
+.live b { font-size: 14px; font-weight: 700; line-height: 18px; font-variant-numeric: tabular-nums; }
+.live b span { color: var(--pin-neutral-400); font-size: 11px; font-weight: 600; }
+.live small { display: inline-flex; align-items: center; gap: 4px; color: var(--pin-blue-200); font-size: 10px; font-weight: 700; line-height: 12px; letter-spacing: .02em; }
+.live.following small { color: var(--pin-neutral-300); }
+.live i { width: 6px; height: 6px; border-radius: 999px; background: var(--color-error); }
+
+.ask {
+  height: 48px;
+  padding: 0 20px 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: var(--pin-neutral-0);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ask:hover, .ask[aria-expanded="true"] { background: var(--color-brand-hover); }
+
+.leave {
+  width: 72px;
+  height: 48px;
+  flex: 0 0 72px;
+  border-radius: 999px;
+  background: var(--color-error);
+  color: var(--pin-neutral-0);
+  text-decoration: none;
+}
+
+.leave:hover { background: var(--color-error-hover); }
+
+.round:focus-visible,
+.leave:focus-visible,
+.ask:focus-visible,
+.group button:focus-visible,
+.tray button:focus-visible,
+.option:focus-visible,
+.view:focus-visible,
+.dismiss:focus-visible { outline: 2px solid var(--pin-blue-300); outline-offset: 2px; }
+
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border: 2px solid var(--pin-neutral-950);
+  border-radius: 999px;
+  background: var(--pin-neutral-600);
+  color: var(--pin-neutral-0);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+}
+
+.badge.alert { background: var(--color-error); }
+
+/* 이모지 트레이·안내: 가운데 버튼 묶음 바로 위에 뜬다. */
+.tray,
+.toast {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tray {
+  padding: 8px 10px;
+  display: flex;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 20px;
+  background: var(--pin-neutral-900);
+  box-shadow: var(--shadow-lg);
+}
+
+.tray button {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 140ms, transform 140ms;
+}
+
+.tray button:hover { background: rgba(255, 255, 255, .1); transform: translateY(-2px); }
+.tray button:active { transform: scale(.94); }
+
+.toast {
+  width: max-content;
+  max-width: min(320px, calc(100vw - 32px));
+  margin: 0;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 999px;
+  background: var(--pin-neutral-900);
+  color: var(--pin-neutral-100);
+  font-size: 13px;
+  line-height: 18px;
+  box-shadow: var(--shadow-lg);
+}
+
+.toast.raised { bottom: calc(100% + 80px); }
+.toast.error { border-color: transparent; border-radius: 10px; background: var(--color-error-bg); color: var(--color-error); }
+
+.menuWrap { position: relative; }
+
+.menu {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  z-index: 2;
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  border-radius: 14px;
+  background: var(--pin-neutral-900);
+  box-shadow: var(--shadow-lg);
+  font-size: 13px;
+}
+
+.askMenu { left: 50%; width: 288px; transform: translateX(-50%); }
+.moreMenu { right: 0; width: 248px; }
+
+.option {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--pin-neutral-100);
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.option:hover { background: rgba(255, 255, 255, .08); }
+.option svg { width: 20px; height: 20px; color: var(--pin-neutral-300); }
+.option b { display: block; font-size: 14px; font-weight: 600; }
+.option small { display: block; margin-top: 2px; color: var(--pin-neutral-400); font-size: 12px; line-height: 17px; }
+
+.menu p { margin: 0; padding: 8px 12px; display: flex; justify-content: space-between; gap: 12px; }
+.menu p span, .menuRow > span { color: var(--pin-neutral-400); }
+.menu p b { font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+.menuRow { padding: 4px 4px 4px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.menu :global(.language-switcher) { height: 46px; padding: 2px; border-color: rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .06); }
+.menu :global(.language-switcher) button { width: 44px; height: 40px; color: var(--pin-neutral-400); font-size: 11px; }
+.menu :global(.language-switcher) button:hover { color: var(--pin-neutral-100); }
+.menu :global(.language-switcher) button:global(.active) { background: rgba(255, 255, 255, .16); color: var(--pin-neutral-100); box-shadow: none; }
+.menuLeave { display: none; }
+.menuLeave, .menuLeave svg { color: var(--color-error); }
+
+/* 새 답변 알림: 오른쪽 질문 목록 버튼 위에 뜬다. */
+.answer {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  width: min(360px, calc(100vw - 24px));
+  padding: 10px 8px 10px 14px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 255, 255, .1);
+  border-radius: 14px;
+  background: var(--pin-neutral-900);
+  box-shadow: var(--shadow-lg);
+}
+
+.answer > svg { width: 20px; height: 20px; color: var(--pin-blue-200); }
+.answer p { min-width: 0; margin: 0; }
+.answer p b { display: block; font-size: 13px; line-height: 18px; }
+.answer p span { display: -webkit-box; overflow: hidden; color: var(--pin-neutral-300); font-size: 12px; line-height: 17px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+.view {
+  min-width: 56px;
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-brand);
+  color: var(--pin-neutral-0);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.view:hover { background: var(--color-brand-hover); }
+
+.dismiss {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pin-neutral-400);
+  cursor: pointer;
+}
+
+.dismiss:hover { background: rgba(255, 255, 255, .08); color: var(--pin-neutral-100); }
+.dismiss svg { width: 18px; height: 18px; }
+
+@media (max-width: 600px) {
+  /* 360px 폭에서도 44px 터치 영역: 가운데·오른쪽을 한 줄로 붙이고, 질문하기는 아이콘만,
+     나가기는 더보기 메뉴 안으로 옮긴다. */
+  .bar {
+    min-height: 60px;
+    padding: 8px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+  }
+  .center, .side { gap: 4px; }
+  .round { width: 44px; height: 44px; flex-basis: 44px; }
+  .round svg, .leave svg, .ask svg { width: 20px; height: 20px; }
+  .group { height: 44px; }
+  .group button { width: 44px; height: 44px; }
+  .group .live { width: 56px; }
+  .ask { width: 44px; height: 44px; flex: 0 0 44px; padding: 0; justify-content: center; }
+  .ask span { display: none; }
+  .leave { display: none; }
+  .menuLeave { display: grid; }
+  .tray button { width: 44px; height: 44px; font-size: 26px; }
+  .toast.raised { bottom: calc(100% + 76px); }
+  /* 메뉴를 버튼이 아니라 가운데 묶음 기준으로 띄워 화면 밖으로 나가지 않게 한다. */
+  .menuWrap { position: static; }
+  .askMenu, .moreMenu { left: 50%; right: auto; width: min(288px, calc(100vw - 24px)); transform: translateX(-50%); }
+}
+
+@media (max-width: 340px) {
+  .bar { padding-inline: 8px; gap: 2px; }
+  .center, .side { gap: 2px; }
+  .round, .ask { width: 42px; height: 42px; flex-basis: 42px; }
+  .group { height: 42px; }
+  .group button { width: 38px; height: 42px; }
+  .group .live { width: 48px; }
+}
+
+/* 가로 휴대폰처럼 화면 전체가 스크롤될 때도 막대는 화면 아래에 붙어 있게 한다. */
+@media (max-width: 899px) and (max-height: 600px) {
+  .bar { position: sticky; bottom: 0; background: inherit; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .round, .leave, .ask, .group button, .tray button { transition: none; }
+  .tray button:hover, .tray button:active { transform: none; }
+}

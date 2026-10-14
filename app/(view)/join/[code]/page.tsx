@@ -1,23 +1,27 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import selectedPinIcon from "@/assets/icons/pin_icon.svg";
 import unselectedPinIcon from "@/assets/icons/pin_black_icon.svg";
-import { Check, ChevronLeft, ChevronRight, MapPin, Send, Smile, Trash2, X } from "@/app/component/icons";
+import { Check, MapPin, Send, Trash2, X } from "@/app/component/icons";
 import { LanguageSwitcher } from "@/app/component/language-switcher";
 import { LoadingScreen } from "@/app/component/loading-screen";
 import { PinLogo } from "@/app/component/pin-logo";
 import { SlideCanvas } from "@/app/component/slide-canvas";
 import { StatusBadge } from "@/app/component/status-badge";
-import { LECTURE_REACTION_EMOJIS } from "@/app/_model/lecture-reactions";
+import { SessionRuntime } from "@/app/component/session-runtime";
 import { QUESTION_MARKERS, questionMarkerEmoji } from "@/app/_model/types";
 import { useJoinSessionController } from "./controller";
 import styles from "./page.module.css";
+import { PinComposer } from "@/app/component/pin-composer";
+import { AiDraftPin, AiQuestionPanel } from "./component/ai-question";
+import { ParticipantBar } from "./component/participant-bar";
 
 export default function JoinSession() {
   const controller = useJoinSessionController();
+  const canvasRef = useRef<HTMLDivElement>(null);
 
   if (controller.state === "loading") return <LoadingScreen />;
   if (controller.state === "missing") return <div className={`${styles.root} student-empty`}><PinLogo /><LanguageSwitcher /><h1>{controller.t("student.sessionNotFound")}</h1><p>{controller.t("student.checkLink")}</p></div>;
@@ -32,30 +36,32 @@ export default function JoinSession() {
     selectCategory, selectMarker, startEditingQuestion, updateDraftText, startMovingDraftTag, moveDraftTag,
     finishMovingDraftTag, openDraftComposer, submit, closeComposer,
     deleteDraftQuestion, selectTool, changeSlide, syncToLiveSlide, selectQuestionSort, toggleQuestionReaction,
-    sendEmojiReaction
+    sendEmojiReaction, questionsVisible, toggleQuestionsVisible, openTextQuestion, focusMode, toggleFocusMode,
+    newAnswerIds, dismissAnswer, openAnswer, ai
   } = controller;
+  const newAnswerQuestion = newAnswerIds.length ? session.questions.find((question) => question.id === newAnswerIds.at(-1)) : undefined;
 
   return (
-    <main className={`${styles.root} student-shell student-slide-shell`}>
+    <main className={`${styles.root} ${focusMode ? styles.focusMode : ""} student-shell student-slide-shell`}>
       <div className="student-guide class-feedback-guide">
-        <div><b>{session.title}<em>LIVE</em></b><span>{t("student.feedbackGuide")}</span></div>
-        <div className="student-header-actions"><Link className="student-complete-button" href={finalHref}>{t("experience.complete")}</Link><LanguageSwitcher /></div>
+        <div><div className={styles.titleWithTimer}><b>{session.title}<em>LIVE</em></b><SessionRuntime session={session} /></div><span>{t("student.feedbackGuide")}</span></div>
       </div>
-      <section className="student-stage" aria-label={t("student.slideAria", { title: session.title })} onWheel={handleSlideWheel}>
+      <section className={`student-stage ${questionsVisible ? "" : styles.questionsHidden}`} aria-label={t("student.slideAria", { title: session.title })} onWheel={handleSlideWheel}>
         <div className="student-image-stage">
           <div className="student-image-viewport">
-            <div className={`student-canvas lecture-fit tool-${activeTool}`} style={{ "--student-image-width": "min(100%, calc((100dvh - 180px) * 16 / 9))" } as CSSProperties}>
+            <div ref={canvasRef} className={`student-canvas lecture-fit tool-${activeTool}`} style={{ "--student-image-width": focusMode ? "min(100%, calc((100dvh - 96px) * 16 / 9))" : "min(100%, calc((100dvh - 180px) * 16 / 9))" } as CSSProperties}>
               <SlideCanvas
                 slide={slide}
-                questions={slideQuestions}
+                questions={ai.movingQuestionId ? slideQuestions.filter((question) => question.id !== ai.movingQuestionId) : slideQuestions}
                 questionCategories={session.questionCategories}
                 visibleQuestionIds={visibleQuestionIds}
                 selectedId={selectedQuestionId}
                 onSelectPin={startEditingQuestion}
-                onCanvasClick={activeTool === "pin" ? placeDraftTag : undefined}
+                onCanvasClick={ai.canvasMode ? ai.placeAt : activeTool === "pin" ? placeDraftTag : undefined}
                 showQuestionLabels
               >
-                {draftQuestion && !editingQuestionId && !submitted && <>
+                <AiDraftPin ai={ai} current={current} />
+                {draftQuestion && !editingQuestionId && !submitted && !ai.canvasMode && <>
                   <button
                     className="draft-pin"
                     style={{ left: `${draftQuestion.x * 100}%`, top: `${draftQuestion.y * 100}%` }}
@@ -74,26 +80,8 @@ export default function JoinSession() {
               </SlideCanvas>
             </div>
           </div>
-          <div className="participant-controls">
-            <div className="participant-page-navigation participant-pages" aria-label={t("student.chooseQuestionSlide")}>
-              <button type="button" disabled={current === 0} onClick={() => changeSlide(current - 1)} aria-label={t("session.previousSlide")}><ChevronLeft /></button>
-              <span>{current + 1} / {session.slides.length}</span>
-              <button type="button" disabled={current === session.slides.length - 1} onClick={() => changeSlide(current + 1)} aria-label={t("session.nextSlide")}><ChevronRight /></button>
-            </div>
-            <div className="participant-reaction-tools">
-              {activeTool === "emoji" && <div className="student-emoji-picker participant-emoji-picker" role="group" aria-label={t("student.chooseEmoji")}>
-                {LECTURE_REACTION_EMOJIS.map((emoji) => <button type="button" key={emoji} onClick={() => void sendEmojiReaction(emoji)} aria-label={t("student.sendReaction", { emoji })}>{emoji}</button>)}
-              </div>}
-              <div className="participant-tool-switch" role="toolbar" aria-label={t("student.questionTools")}>
-                <button type="button" className={activeTool === "pin" ? "active" : ""} aria-pressed={activeTool === "pin"} onClick={() => selectTool("pin")} aria-label={t("student.pinTool")} title={t("student.pin")}><MapPin /></button>
-                <button type="button" className={activeTool === "emoji" ? "active" : ""} aria-pressed={activeTool === "emoji"} onClick={() => selectTool(activeTool === "emoji" ? "pin" : "emoji")} aria-label={t("student.emojiTool")} title={t("student.emoji")}><Smile /></button>
-              </div>
-              {emojiError && <span className="participant-reaction-error" role="alert">{emojiError}</span>}
-            </div>
-          </div>
-          {slideIndex !== null && <button className="student-sync-button" onClick={syncToLiveSlide}>{t("student.currentSlide")}</button>}
         </div>
-        <section className="student-feedback-panel" aria-labelledby="student-feedback-title">
+        <section id="participant-questions" className="student-feedback-panel" hidden={!questionsVisible} aria-labelledby="student-feedback-title">
           <header className="student-feedback-head">
             <h2 id="student-feedback-title">{t("student.feedbackListTitle")}</h2>
             <div className="student-feedback-head-actions">
@@ -104,6 +92,7 @@ export default function JoinSession() {
               </select>
             </div>
           </header>
+          <AiQuestionPanel ai={ai} questions={session.questions} categoryOptions={categoryOptions} categoryLabel={categoryLabel} />
           {submittedQuestions.length ? <ul className="student-feedback-list">
             {submittedQuestions.map((question) => {
               const reactionPending = pendingReactionIds.has(question.id);
@@ -113,6 +102,7 @@ export default function JoinSession() {
                   <button type="button" className="student-feedback-item" onClick={() => startEditingQuestion(question.id)} aria-pressed={selectedQuestionId === question.id}>
                     <span className="student-question-list-meta"><span className={`category ${categoryClass(question.category)}`}>{questionMarkerEmoji(question.marker) && <i aria-hidden="true">{questionMarkerEmoji(question.marker)}</i>}{categoryLabel(question.category)}</span><StatusBadge status={question.status} /><time dateTime={question.createdAt}>{timeAgo(question.createdAt)}</time></span>
                     <p>{question.text}</p>
+                    {question.x === null && <small>접수 완료 · 위치 미확정{question.isMine && question.status === "unanswered" ? " · 눌러서 위치 지정" : ""}</small>}
                     {question.answer && <span className="student-question-list-answer"><b>{t("question.instructorAnswer")}</b>{question.answer}</span>}
                   </button>
                   <button
@@ -131,11 +121,33 @@ export default function JoinSession() {
           {reactionError && <p className="student-empathy-error" role="alert">{reactionError}</p>}
         </section>
       </section>
+      <ParticipantBar
+        code={session.code}
+        current={current}
+        liveIndex={session.currentSlide}
+        following={slideIndex === null}
+        pageCount={session.slides.length}
+        activeTool={activeTool}
+        questionsVisible={questionsVisible}
+        questionCount={submittedQuestions.length}
+        finalHref={finalHref}
+        emojiError={emojiError}
+        newAnswer={newAnswerQuestion?.answer ? { id: newAnswerQuestion.id, text: newAnswerQuestion.answer, count: newAnswerIds.length } : null}
+        focusMode={focusMode}
+        onPage={changeSlide}
+        onSync={syncToLiveSlide}
+        onTool={selectTool}
+        onEmoji={(emoji) => void sendEmojiReaction(emoji)}
+        onToggleQuestions={toggleQuestionsVisible}
+        onWriteQuestion={openTextQuestion}
+        onOpenAnswer={openAnswer}
+        onDismissAnswer={dismissAnswer}
+        onToggleFocus={toggleFocusMode}
+      />
       <div className="participant-page-reactions" aria-hidden="true">
         {liveReactions.map((reaction) => <span key={reaction.id} className="slide-emoji-reaction lecture-live-reaction" style={{ left: `${reaction.left}%`, animationDelay: `${reaction.delay}ms` }}>{reaction.emoji}</span>)}
       </div>
-      {composerOpen && <div className="student-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeComposer(); }}>
-        <section className="student-question-modal" role="dialog" aria-modal="true" aria-labelledby="question-modal-title">
+      {composerOpen && <PinComposer canvasRef={canvasRef} x={viewingQuestion?.x ?? draftQuestion?.x ?? 0.5} y={viewingQuestion?.y ?? draftQuestion?.y ?? 0.5} onClose={closeComposer}>
           <button type="button" className="icon-btn modal-close" onClick={closeComposer} aria-label={t("student.closeComposer")}><X /></button>
           {viewingQuestion ? <div className="student-answer-view">
             <span className={`category ${categoryClass(viewingQuestion.category)}`}>{questionMarkerEmoji(viewingQuestion.marker) && <i aria-hidden="true">{questionMarkerEmoji(viewingQuestion.marker)}</i>}{categoryLabel(viewingQuestion.category)}</span>
@@ -166,13 +178,13 @@ export default function JoinSession() {
             {submitError && <div className="student-submit-error" role="alert">{submitError}</div>}
             <div className="student-composer-actions">
               <button className="btn primary large full" onClick={() => void submit()} disabled={submitting}>{submitting ? <span className="spinner" /> : <Send />}{editingQuestionId ? t("student.sendEdited") : t("student.sendQuestion")}</button>
+              {editingQuestionId && <button className="btn secondary large full" onClick={() => { const id = editingQuestionId; closeComposer(); ai.startMoving(id); }} disabled={submitting}><MapPin />PIN 위치 옮기기</button>}
               {editingQuestionId
                 ? <button className="btn secondary large full" onClick={closeComposer} disabled={submitting}>{t("student.cancelEdit")}</button>
                 : <button className="btn destructive large full" onClick={deleteDraftQuestion}><Trash2 />{t("student.deletePin")}</button>}
             </div>
           </>}
-        </section>
-      </div>}
+      </PinComposer>}
     </main>
   );
 }

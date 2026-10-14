@@ -86,31 +86,6 @@
   white-space: nowrap;
 }
 
-.root :global(.student-header-actions) {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.root :global(.student-complete-button) {
-  height: 28px;
-  padding: 0 10px;
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  background: var(--color-brand);
-  color: var(--color-bg-surface);
-  font-size: 11px;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.root :global(.student-complete-button:hover) {
-  background: var(--color-brand-hover);
-}
-
 .root :global(.student-stage) {
   position: relative;
   flex: 1;
@@ -154,144 +129,13 @@
   margin-inline: auto;
 }
 
-.root :global(.participant-controls) {
-  width: 100%;
-  padding: 10px max(12px, env(safe-area-inset-right)) 0 max(12px, env(safe-area-inset-left));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-}
-
-.root :global(.participant-reaction-tools) {
-  position: relative;
-  z-index: 15;
-  grid-column: 3;
-  justify-self: end;
-}
-
-.root :global(.participant-page-navigation) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.root :global(.participant-page-navigation button) {
-  width: 34px;
-  height: 34px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-bg-surface);
-  color: var(--color-text-primary);
-}
-
-.root :global(.participant-page-navigation button:hover:not(:disabled)) {
-  border-color: var(--color-brand);
-  color: var(--color-brand);
-}
-
-.root :global(.participant-page-navigation button:disabled) {
-  opacity: .35;
-}
-
-.root :global(.participant-page-navigation button svg) {
-  width: 18px;
-}
-
-.root :global(.participant-page-navigation span) {
-  min-width: 76px;
-  text-align: center;
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.root :global(.participant-page-navigation.participant-pages) {
-  width: max-content;
-  margin: 0;
-  grid-column: 2;
-  border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 10px;
-  background: var(--pin-neutral-900);
-}
-
-.root :global(.participant-page-navigation.participant-pages button) {
-  width: 30px;
-  height: 35px;
-  border-color: rgba(255, 255, 255, .12);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, .08);
-  color: var(--pin-neutral-100);
-}
-
-.root :global(.participant-page-navigation.participant-pages span) {
-  color: var(--pin-neutral-100);
-  font-size: 11px;
-}
-
-.root :global(.participant-tool-switch) {
-  height: 37px;
-  padding: 1px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  border: 1px solid rgba(255, 255, 255, .14);
-  border-radius: 10px;
-  background: var(--pin-neutral-900);
-}
-
-.root :global(.participant-tool-switch button) {
-  width: 33px;
-  height: 33px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--pin-neutral-400);
-}
-
-.root :global(.participant-tool-switch button:hover) {
-  background: rgba(255, 255, 255, .08);
-  color: var(--pin-neutral-100);
-}
-
-.root :global(.participant-tool-switch button.active) {
-  background: var(--color-brand);
-  color: var(--color-bg-surface);
-}
-
-.root :global(.participant-tool-switch svg) {
-  width: 16px;
-  height: 16px;
-}
-
-.root :global(.participant-reaction-error) {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 7px);
-  width: max-content;
-  max-width: min(240px, calc(100vw - 24px));
-  padding: 7px 9px;
-  border-radius: 8px;
-  background: var(--color-error-bg);
-  color: var(--color-error);
-  font-size: 10px;
-  line-height: 15px;
-}
-
 .root :global(.student-feedback-panel) {
   min-height: 0;
   flex: 1 1 0;
   padding: 20px max(18px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
   display: grid;
   grid-template-columns: minmax(0, 720px);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   align-content: start;
   justify-content: center;
   overflow: hidden;
@@ -358,6 +202,12 @@
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
+@keyframes pinBubbleOpen {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 
 .root :global(.student-feedback-list .question-card) {
   min-height: 80px;
@@ -615,7 +465,7 @@
     min-height: 0;
     height: 100%;
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr);
   }
 
   .root :global(.student-image-viewport) {
@@ -643,17 +493,11 @@
     max-height: none;
   }
 
-  .root :global(.participant-controls) {
-    padding: 10px 16px 12px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+  /* 질문 목록을 숨기면 오른쪽 칸도 비우고 슬라이드가 전체 폭을 쓴다. */
+  .root :global(.student-stage).questionsHidden {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .root :global(.participant-reaction-tools) {
-    grid-column: auto;
-    justify-self: auto;
-  }
 }
 
 @media (max-width: 600px) {
@@ -664,14 +508,6 @@
   .root :global(.student-feedback-panel) {
     padding-top: 8px;
     padding-bottom: max(8px, env(safe-area-inset-bottom));
-  }
-
-  .root :global(.class-feedback-guide .student-header-actions) {
-    gap: 6px;
-  }
-
-  .root :global(.class-feedback-guide .student-complete-button) {
-    display: none;
   }
 
   .root :global(.class-feedback-guide > div:first-child span) {
@@ -728,8 +564,8 @@
 
 
 /* Route-owned semantic rules moved from globals.css. */
-.root :global(.question-card):global(.selected){border-color:var(--pin-blue-500);background:var(--color-brand-subtle)}.root :global(.category-scroll){display:flex;gap:7px;overflow-x:auto;padding-bottom:10px}.root :global(.category-scroll) button{height:32px;padding:0 11px;white-space:nowrap;border:1px solid var(--color-border);border-radius:999px;background:var(--color-bg-surface);font-size:12px;color:var(--color-text-secondary)}.root :global(.category-scroll) button:global(.active){background:var(--color-brand-subtle);border-color:var(--pin-blue-300);color:var(--pin-blue-700);font-weight:600}.root :global(.textarea-wrap){position:relative;margin-bottom:12px}.root :global(.textarea-wrap) textarea{display:block;width:100%;height:108px;resize:none;border:1px solid var(--color-border-strong);border-radius:12px;padding:13px 14px 26px;line-height:20px;color:var(--color-text-primary)}.root :global(.textarea-wrap) span{position:absolute;right:12px;bottom:9px;font-size:10px;color:var(--color-text-tertiary)}.root :global(.student-sync-button){position:absolute;z-index:5;right:20px;top:18px;height:34px;padding:0 13px;border:1px solid rgba(255,255,255,.16);border-radius:999px;background:rgba(23,29,38,.74);color:var(--pin-neutral-100);font-size:12px;font-weight:600;backdrop-filter:blur(10px)}.root :global(.student-question-modal) :global(.category-scroll){padding-bottom:14px}.root :global(.student-question-modal) :global(.textarea-wrap){margin-bottom:14px}.root :global(.student-question-modal) :global(.textarea-wrap) textarea{height:132px}.root :global(.student-answer-view){padding:4px 0 0}.root :global(.student-answer-view) h2{margin:12px 0 8px;font-size:21px;line-height:29px}.root :global(.student-answer-question){margin:0;color:var(--color-text-secondary);font-size:14px;line-height:22px;white-space:pre-wrap}
-.root :global(.student-emoji-picker){position:absolute;right:0;bottom:calc(100% + 10px);z-index:12;width:max-content;padding:6px;display:flex;align-items:center;gap:6px;border:1px solid var(--color-border);border-radius:16px;background:var(--color-bg-surface);box-shadow:var(--shadow-lg)}.root :global(.student-emoji-picker) button{width:44px;height:44px;flex:0 0 44px;padding:0;display:grid;place-items:center;border:1px solid var(--color-border);border-radius:12px;background:var(--pin-neutral-50);font-size:24px;line-height:1;transition:background-color 140ms,border-color 140ms}.root :global(.student-emoji-picker) button:hover{border-color:var(--color-brand);background:var(--color-brand-subtle)}.root :global(.student-emoji-picker) button:active{background:var(--pin-blue-100)}.root :global(.slide-emoji-reaction){position:absolute;z-index:20;bottom:-52px;transform:translateX(-50%);font-size:clamp(34px,4vw,58px);line-height:1;pointer-events:none;filter:drop-shadow(0 7px 12px rgba(16,24,39,.28));animation:emoji-rise 1.8s cubic-bezier(.18,.72,.26,1) forwards}.root :global(.student-question-list-meta){display:flex;align-items:center;gap:6px;flex-wrap:wrap}.root :global(.student-question-list-meta) time{margin-left:auto;color:var(--color-text-tertiary);font-size:11px}.root :global(.student-question-list-answer){margin-top:12px;padding:10px 12px;display:block;border-left:3px solid var(--pin-blue-400);border-radius:8px;background:var(--color-brand-subtle);color:var(--color-text-secondary);font-size:12px;line-height:19px;white-space:pre-wrap;overflow-wrap:anywhere}.root :global(.student-question-list-answer)>b{display:block;margin-bottom:3px;color:var(--pin-blue-700);font-size:10px}@media (max-width:600px){.root :global(.student-sync-button){right:14px;top:58px}.root :global(.student-question-list-meta) time{width:100%;margin-left:0}.root :global(.student-question-modal) :global(.category-scroll){margin-right:-20px;padding-right:20px}.root :global(.student-question-modal) :global(.textarea-wrap) textarea{height:122px}.root :global(.student-emoji-picker){bottom:calc(100% + 8px)}}@media (max-height:600px) and (orientation:landscape){.root :global(.student-question-modal) :global(.textarea-wrap) textarea{height:88px}.root :global(.student-emoji-picker){bottom:calc(100% + 6px)}}
+.root :global(.question-card):global(.selected){border-color:var(--pin-blue-500);background:var(--color-brand-subtle)}.root :global(.category-scroll){display:flex;gap:7px;overflow-x:auto;padding-bottom:10px}.root :global(.category-scroll) button{height:32px;padding:0 11px;white-space:nowrap;border:1px solid var(--color-border);border-radius:999px;background:var(--color-bg-surface);font-size:12px;color:var(--color-text-secondary)}.root :global(.category-scroll) button:global(.active){background:var(--color-brand-subtle);border-color:var(--pin-blue-300);color:var(--pin-blue-700);font-weight:600}.root :global(.textarea-wrap){position:relative;margin-bottom:12px}.root :global(.textarea-wrap) textarea{display:block;width:100%;height:108px;resize:none;border:1px solid var(--color-border-strong);border-radius:12px;padding:13px 14px 26px;line-height:20px;color:var(--color-text-primary)}.root :global(.textarea-wrap) span{position:absolute;right:12px;bottom:9px;font-size:10px;color:var(--color-text-tertiary)}.root :global(.student-question-modal) :global(.category-scroll){padding-bottom:14px}.root :global(.student-question-modal) :global(.textarea-wrap){margin-bottom:14px}.root :global(.student-question-modal) :global(.textarea-wrap) textarea{height:132px}.root :global(.student-answer-view){padding:4px 0 0}.root :global(.student-answer-view) h2{margin:12px 0 8px;font-size:21px;line-height:29px}.root :global(.student-answer-question){margin:0;color:var(--color-text-secondary);font-size:14px;line-height:22px;white-space:pre-wrap}
+.root :global(.student-emoji-picker){position:absolute;right:0;bottom:calc(100% + 10px);z-index:12;width:max-content;padding:6px;display:flex;align-items:center;gap:6px;border:1px solid var(--color-border);border-radius:16px;background:var(--color-bg-surface);box-shadow:var(--shadow-lg)}.root :global(.student-emoji-picker) button{width:44px;height:44px;flex:0 0 44px;padding:0;display:grid;place-items:center;border:1px solid var(--color-border);border-radius:12px;background:var(--pin-neutral-50);font-size:24px;line-height:1;transition:background-color 140ms,border-color 140ms}.root :global(.student-emoji-picker) button:hover{border-color:var(--color-brand);background:var(--color-brand-subtle)}.root :global(.student-emoji-picker) button:active{background:var(--pin-blue-100)}.root :global(.slide-emoji-reaction){position:absolute;z-index:20;bottom:-52px;transform:translateX(-50%);font-size:clamp(34px,4vw,58px);line-height:1;pointer-events:none;filter:drop-shadow(0 7px 12px rgba(16,24,39,.28));animation:emoji-rise 1.8s cubic-bezier(.18,.72,.26,1) forwards}.root :global(.student-question-list-meta){display:flex;align-items:center;gap:6px;flex-wrap:wrap}.root :global(.student-question-list-meta) time{margin-left:auto;color:var(--color-text-tertiary);font-size:11px}.root :global(.student-question-list-answer){margin-top:12px;padding:10px 12px;display:block;border-left:3px solid var(--pin-blue-400);border-radius:8px;background:var(--color-brand-subtle);color:var(--color-text-secondary);font-size:12px;line-height:19px;white-space:pre-wrap;overflow-wrap:anywhere}.root :global(.student-question-list-answer)>b{display:block;margin-bottom:3px;color:var(--pin-blue-700);font-size:10px}@media (max-width:600px){.root :global(.student-question-list-meta) time{width:100%;margin-left:0}.root :global(.student-question-modal) :global(.category-scroll){margin-right:-20px;padding-right:20px}.root :global(.student-question-modal) :global(.textarea-wrap) textarea{height:122px}.root :global(.student-emoji-picker){bottom:calc(100% + 8px)}}@media (max-height:600px) and (orientation:landscape){.root :global(.student-question-modal) :global(.textarea-wrap) textarea{height:88px}.root :global(.student-emoji-picker){bottom:calc(100% + 6px)}}
 .root :global(.student-answer-view) :global(.btn){margin-top:22px}.root :global(.student-feedback-list) :global(.question-card):global(.empathy-fire){position:relative;isolation:isolate;animation:empathy-fire-glow 900ms ease-in-out infinite alternate}.root :global(.student-feedback-fire){position:absolute;z-index:2;right:18px;top:-8px;pointer-events:none;font-size:18px;line-height:1;filter:drop-shadow(0 0 8px var(--color-warning));animation:empathy-flame 850ms ease-in-out infinite alternate}.root :global(.student-feedback-item) :global(.student-question-list-answer){margin-right:4px}@keyframes emoji-rise{0%{opacity:0;transform:translate(-50%,12px) scale(.68)}18%{opacity:1}70%{opacity:1;transform:translate(-50%,-42vh) scale(1.08) rotate(5deg)}100%{opacity:0;transform:translate(-50%,-56vh) scale(.94) rotate(-4deg)}}@keyframes empathy-fire-glow{to{box-shadow:0 0 34px rgba(249,115,22,.96),0 8px 24px rgba(0,0,0,.32)}}@keyframes empathy-flame{from{transform:translate(-50%,3px) scale(.9) rotate(-2deg)}to{transform:translate(-50%,-3px) scale(1.06) rotate(2deg)}}
 
 /* Dynamic semantic variants moved from globals.css. */
@@ -760,4 +596,61 @@
     width: auto;
     margin-left: auto;
   }
+}
+.root :global(.student-question-modal.pin-composer) {
+  position: fixed;
+  z-index: 100;
+  width: 340px;
+  padding: 16px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--color-text-primary) 18%, transparent);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.root :global(.pin-composer .modal-close) { top: 8px; right: 8px; width: 44px; height: 44px; }
+.root :global(.pin-composer .student-modal-heading) { gap: 8px; margin-bottom: 12px; padding-right: 36px; }
+.root :global(.pin-composer .student-modal-heading h2) { font-size: 16px; line-height: 24px; }
+.root :global(.pin-composer .student-modal-heading > .question-pin-preview) { display: none; }
+.root :global(.pin-composer .question-marker-picker) { margin-bottom: 10px; }
+.root :global(.pin-composer .question-marker-picker button) { height: 56px; }
+.root :global(.pin-composer .category-scroll) { flex-wrap: wrap; gap: 6px; margin-right: 0; padding: 0 0 10px; }
+.root :global(.pin-composer .category-scroll button) { min-height: 44px; }
+.root :global(.pin-composer .textarea-wrap) { margin-bottom: 10px; }
+.root :global(.pin-composer .textarea-wrap textarea) { height: 100px; font-size: 14px; }
+.root :global(.pin-composer .student-composer-actions) { gap: 8px; }
+.root :global(.pin-composer .student-composer-actions .btn) { min-height: 44px; height: 44px; font-size: 14px; }
+.root :global(.pin-composer .student-composer-actions .btn.destructive) { background: var(--color-bg-surface); color: var(--color-error); border: 1px solid var(--color-border); }
+
+@media (prefers-reduced-motion: reduce) {
+  .root :global(.student-question-modal.pin-composer) { animation: none; }
+}
+
+.root :global(.pin-composer-dismiss) { position: fixed; inset: 0; z-index: 99; background: transparent; }
+.root :global(.pin-composer-tail) { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 101; pointer-events: none; overflow: visible; }
+.root :global(.pin-composer-tail path), .root :global(.pin-composer-tail rect) { fill: var(--color-bg-surface); stroke: var(--color-border-strong); stroke-width: 1; stroke-linejoin: round; }
+.root:has(:global(.pin-composer)) :global(.draft-pin),
+.root:has(:global(.pin-composer)) :global(.draft-tag),
+.root:has(:global(.pin-composer)) :global(.question-pin.selected) { visibility: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .root :global(.pin-composer > *) { animation: none; }
+  .root :global(.pin-composer-tail) { animation: none; }
+}
+.root :global(.student-feedback-panel[hidden]) { display:none; }
+.root .questionsHidden :global(.student-image-stage) { flex:1 1 auto; width:100%; max-width:100%; }
+.titleWithTimer { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.root .titleWithTimer :global([role="timer"]) { display:inline-flex; margin:0; padding:4px 8px; white-space:nowrap; }
+.root .titleWithTimer :global([role="timer"]) b { color:var(--color-text-primary); font-variant-numeric:tabular-nums; }
+.root .titleWithTimer :global([role="timer"]) span { margin:0; color:var(--color-text-secondary); }
+
+/* 전체 화면(집중 보기): 헤더를 접고 슬라이드를 남는 높이에 맞춰 가운데에 둔다. 하단 막대는 그대로. */
+.root.focusMode :global(.student-guide) { display: none; }
+.root.focusMode :global(.student-image-stage) { flex: 1 1 auto; min-height: 0; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); }
+.root.focusMode :global(.student-image-viewport) { min-height: 0; display: grid; place-items: center; overflow: auto; }
+.root.focusMode :global(.student-image-viewport .student-canvas.lecture-fit) { width: var(--student-image-width) !important; }
+@media (max-width: 899px) and (max-height: 600px) {
+  .root.focusMode:global(.student-slide-shell) { height: 100dvh; overflow: hidden; }
+  .root.focusMode :global(.student-stage) { flex: 1; overflow: hidden; }
 }

@@ -1,0 +1,12 @@
+.root{width:270px;min-width:0;max-height:100%;align-self:start;background:var(--color-bg-surface);color:var(--color-text-primary);border:1px solid var(--color-border);border-radius:16px;box-shadow:var(--shadow-md);overflow:auto;font-size:12px;text-align:left}
+.root header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:14px;position:sticky;top:0;background:var(--color-bg-surface);z-index:1;border-bottom:1px solid var(--color-border)}
+.root header strong{font-size:14px}.root header small{color:var(--color-brand);margin-left:4px}
+.root button,.root select{font:inherit;cursor:pointer;color:inherit}.root header button{border:0;background:var(--color-bg-page);border-radius:6px;padding:6px}
+.controls{display:flex;gap:6px;padding:12px 12px 0}.controls select{width:50%;min-width:0;border:1px solid var(--color-border);border-radius:6px;padding:6px;background:var(--color-bg-surface)}
+.root p{font-size:11px;line-height:1.5;color:var(--color-text-secondary);margin:8px 12px}.root ol{list-style:none;padding:0 10px 10px;margin:0;display:grid;gap:8px}
+.root li button{display:flex;gap:10px;text-align:left;width:100%;padding:12px 10px;border:1px solid var(--color-border);border-radius:10px;background:var(--color-bg-surface)}
+.root li button:hover{background:var(--color-brand-subtle)}.root li button>b{font-size:18px;color:var(--color-brand);min-width:18px}.root li button>span{min-width:0;display:grid;gap:5px}
+.root li strong{font-size:13px;line-height:1.5;overflow-wrap:anywhere}.root small{color:var(--color-text-secondary);line-height:1.4}.root em{font-style:normal;font-size:10px;border-left:5px solid var(--pin-neutral-400);padding-left:5px}
+.root em[data-type=concept]{border-color:var(--color-question-pin-concept)}.root em[data-type=clarification]{border-color:var(--color-question-pin-clarification)}.root em[data-type=why]{border-color:var(--color-question-pin-why)}.root em[data-type=application]{border-color:var(--color-question-pin-application)}.root em[data-type=comparison]{border-color:var(--color-question-pin-comparison)}.root em[data-type=deep_dive]{border-color:var(--color-question-pin-deep-dive)}.root em[data-type=logistics]{border-color:var(--color-question-pin-logistics)}
+.root button:focus-visible,.root select:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}.root button:disabled{opacity:.5;cursor:wait}
+@media(max-width:1000px){.root{width:100%}}

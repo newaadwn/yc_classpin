@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, type RefObject, type ReactNode } from "react";
+import { PinComposer } from "@/app/component/pin-composer";
 import { X } from "@/app/component/icons";
 import { useLanguage } from "@/app/_controller/language-context";
 import { StatusBadge } from "@/app/component/status-badge";
 import { questionCategoryClass, questionCategoryLabel, questionMarkerEmoji, type Question, type QuestionCategorySettings } from "@/app/_model/types";
 import styles from "./question-detail-dialog.module.css";
 
-export function QuestionDetailDialog({ question, questionCategories, onClose }: {
+export function QuestionDetailDialog({ question, questionCategories, onClose, canvasRef, answerEditor }: {
+  answerEditor?: ReactNode;
+  canvasRef?: RefObject<HTMLDivElement | null>;
   question: Question;
   questionCategories: QuestionCategorySettings;
   onClose: () => void;
@@ -23,6 +26,7 @@ export function QuestionDetailDialog({ question, questionCategories, onClose }: 
   }, [onClose]);
 
   useEffect(() => {
+    if (canvasRef) return;
     const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -39,18 +43,15 @@ export function QuestionDetailDialog({ question, questionCategories, onClose }: 
       document.body.style.overflow = previousOverflow;
       previousFocus?.focus();
     };
-  }, [question.id]);
+  }, [question.id, canvasRef]);
 
-  return (
-    <div className={`${styles.root} question-detail-backdrop`} onMouseDown={(event) => {
-      if (event.target === event.currentTarget) onClose();
-    }}>
+  const content = (
       <section
         ref={dialogRef}
         className="question-detail-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
+        role={canvasRef ? undefined : "dialog"}
+        aria-modal={canvasRef ? undefined : true}
+        aria-labelledby={canvasRef ? undefined : titleId}
         tabIndex={-1}
       >
         <button type="button" className={styles.close} onClick={onClose} aria-label={t("question.closeDetail")}><X /></button>
@@ -58,7 +59,7 @@ export function QuestionDetailDialog({ question, questionCategories, onClose }: 
           <span className={`category ${questionCategoryClass(questionCategories, question.category)}`}>{questionMarkerEmoji(question.marker) && <i aria-hidden="true">{questionMarkerEmoji(question.marker)}</i>}{categoryLabel}</span>
           <span>{t("common.slideLabel", { number: question.slideIndex + 1 })}</span>
         </div>
-        <h2 id={titleId}>{t("question.questionAndAnswer")}</h2>
+        <h2 id={canvasRef ? "question-modal-title" : titleId}>{t("question.questionAndAnswer")}</h2>
         <p className="question-detail-question">{question.text}</p>
         <div className="question-detail-meta">
           <StatusBadge status={question.status} />
@@ -68,8 +69,9 @@ export function QuestionDetailDialog({ question, questionCategories, onClose }: 
           <span>{t("question.instructorAnswer")}</span>
           <p>{question.answer ?? t("question.noAnswer")}</p>
         </div>
-        <button type="button" className="btn primary large full" onClick={onClose}>{t("common.confirm")}</button>
+        {answerEditor ?? <button type="button" className="btn primary large full" onClick={onClose}>{t("common.confirm")}</button>}
       </section>
-    </div>
   );
+  if (canvasRef) return <div className={`${styles.root} ${styles.anchored}`}><PinComposer canvasRef={canvasRef} x={question.x ?? 0.5} y={question.y ?? 0.5} onClose={onClose}>{content}</PinComposer></div>;
+  return <div className={`${styles.root} question-detail-backdrop`} onMouseDown={event => { if(event.target === event.currentTarget) onClose(); }}>{content}</div>;
 }

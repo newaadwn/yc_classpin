@@ -1,0 +1,12 @@
+# Participant question visibility
+
+Participants can hide/show their own question panel through the always-available question button at the right end of the participant bottom bar (2026-09-22: moved from the header). Default is visible. This is local UI state, not instructor permission or a shared setting. Preserve existing current-slide public questions, statuses, instructor answers, sort order, empathy rules and realtime subscription while hidden. Hide only the panel; never delete questions, alter other participants' views or disconnect live updates. Restore the current question list when reopened. No persistence or database changes.
+
+## Participant bottom bar (2026-09-22, user-approved)
+
+Video-call style bar at the bottom of `/join/[code]` (`component/participant-bar.tsx`), replacing the header actions, the small controls under the slide and the floating "현재 슬라이드로" pill:
+- Center: page group `‹ [n/N · LIVE] ›` — the middle cell shows whether the participant follows the instructor (red dot + LIVE) or browses another page ("LIVE로" button, returns to the instructor's page); reactions (emoji tray above the bar); blue "질문하기" with two choices — pin on the slide (hint toast, PIN tool) or ask in text (reopens the panel and focuses the AI input); more menu (full screen, join code, language, and "참여 마치기" on phones); red "참여 마치기" link to the existing final survey.
+- Right: question panel toggle with the question count badge. When an instructor answer arrives on one of the participant's own questions after joining, a notice pops above it ("내 질문에 답변이 달렸어요" · 보기 · ×) and the badge turns red with the unseen count. "보기" goes to that question's page (keeps following when it is the live page) and opens the answer. Answers present at join time are treated as seen; nothing is stored.
+- Full screen (more menu): hides the header and the question panel, fits the slide to the remaining height and requests browser full screen when available (iPhone Safari keeps the CSS-only mode). Esc/leaving full screen restores the previous panel state.
+- No clock. ≤600px keeps 44px targets at 360px width (질문하기 icon-only, 나가기 in the more menu). Escape closes menus then the tray; outside tap closes menus.
+- Data and permissions are unchanged: same tools, navigation, emoji broadcast, final link and panel state. On desktop, hiding the panel now also frees its column so the slide uses the full width.

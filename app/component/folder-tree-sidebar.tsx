@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import classPinLogo from "@/assets/logo/logo.svg";
 import projectIcon from "@/assets/icons/project_icon.svg";
 import { PanelLeftClose, PanelLeftOpen } from "@/app/component/icons";
+import { PinLogo } from "@/app/component/pin-logo";
 import { WorkspaceAccount } from "@/app/component/workspace-header";
 import { useLanguage } from "@/app/_controller/language-context";
 import type { ClassFolder } from "@/app/_model/types";
@@ -21,9 +21,7 @@ export function FolderTreeSidebar({ folders, open, activeFolderId, onToggle }: {
   return (
     <aside className={`${styles.root} folder-tree-sidebar`} aria-label={t("folders.myFolders")}>
       <div className="folder-tree-brand">
-        <Link href="/admin/dashboard" aria-label={t("common.home")}>
-          <Image src={classPinLogo} alt="Class Pin" priority />
-        </Link>
+        <PinLogo href="/admin/dashboard" />
         <button type="button" onClick={onToggle} aria-expanded={open} aria-label={t(open ? "session.collapseFolders" : "session.expandFolders")} title={t(open ? "session.collapseFolders" : "session.expandFolders")}>
           {open ? <PanelLeftClose /> : <PanelLeftOpen />}
         </button>

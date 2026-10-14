@@ -1,0 +1,33 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- standalone Node test */
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),ts=require('typescript');
+const cache=new Map();
+function load(file){file=path.resolve(file);if(!file.endsWith('.ts'))file+='.ts';if(cache.has(file))return cache.get(file);const exports={};cache.set(file,exports);new Function('exports','require',ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(exports,(name)=>{if(name.includes('question-condense-service'))return {};return load(name.startsWith('@/')?name.slice(2):path.resolve(path.dirname(file),name));});return exports;}
+const storage=new Map();global.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)};global.window={dispatchEvent:()=>{}};
+const model=load('app/_model/lecture-analysis'),service=load('app/_service/lecture-analysis-service'),questions=load('app/_service/section-question-service');
+const session={id:'lecture',title:'AI',createdAt:'2026',slides:[{id:'p',pageIndex:0,imageUrl:'/p.png'}],questions:[]};
+const section=(id,x=.1)=>({id,name:id,x,y:.2,w:.2,h:.4,enabled:true,modifiedByInstructor:false,source:'ai',concepts:[id]});
+const base=model.defaultAnalysisConfig();assert.equal(base.granularity,'normal');assert.equal(base.connectPreviousLectures,true);
+assert.equal(model.configError({...base,field:['engineering_it','business']}),null);
+assert.ok(model.configError({...base,field:[]}));
+assert.ok(model.configError({...base,field:['engineering_it','etc']}));
+assert.equal(model.configError({...base,field:['engineering_it','etc'],fieldOther:'융합'}),null);
+assert.ok(model.configError({...base,field:['invalid']}));
+assert.equal(model.configError({...base,granularity:'fine',focusElements:['concept','image']}),null);
+assert.ok(model.configError({...base,lectureType:'series'}));assert.ok(model.configError({...base,field:'etc'}));assert.ok(model.configError({...base,excludedPages:[0]}));
+service.prepareReview(session,base);service.applyAnalysisPage(session.id,'p',[section('a'),section('b',.6)]);
+assert.deepEqual(questions.sectionsForPage(session,'p'),[],'draft cannot label pins');
+assert.throws(()=>service.confirmReview(session),/검수/);
+let r=service.readReview(session.id);const merged=model.mergeSections(r.sections.p,['a','b'],'merged');assert.equal(merged.length,1);assert.equal(merged[0].x,.1);assert.ok(Math.abs(merged[0].w-.7)<1e-9);assert.equal(merged[0].modifiedByInstructor,true);
+const split=model.splitSection(merged,'merged','x','second');assert.equal(split.length,2);assert.ok(Math.abs(split[0].w+split[1].w-.7)<1e-9);
+service.writeReview({...r,sections:{p:split},reviewedPages:['p']});service.confirmReview(session);
+assert.equal(questions.sectionsForPage(session,'p').length,2);
+r=service.readReview(session.id);service.writeReview({...r,sections:{p:r.sections.p.map(s=>({...s,enabled:s.id!=='second'}))},reviewedPages:['p']});
+assert.equal(questions.sectionsForPage(session,'p').length,2,'draft changes do not mutate snapshot');service.confirmReview(session);assert.equal(questions.sectionsForPage(session,'p').length,1,'disabled section excluded');
+service.prepareReview(session,{...base,granularity:'fine'});service.applyAnalysisPage(session.id,'p',[section('new')]);assert.equal(service.readReview(session.id).sections.p[0].id,'merged','manual page preserved');service.applyAnalysisPage(session.id,'p',[section('new')],false);assert.equal(service.readReview(session.id).sections.p[0].id,'new');assert.equal(questions.sectionsForPage(session,'p')[0].id,'merged','confirmed snapshot survives reanalysis');
+const config={...base,lectureType:'series',courseId:'course',courseTitle:'AI융합입문',sequenceNumber:1};service.prepareReview(session,config);r=service.readReview(session.id);service.writeReview({...r,reviewedPages:['p']});service.confirmReview(session);
+const next={...session,id:'next'};const context=service.previousLectureContext(next,[session,next],{...config,sequenceNumber:3});assert.equal(context.length,1);assert.equal(context[0].sequenceNumber,1);assert.equal(service.previousLectureContext(next,[session],{...config,sequenceNumber:3,connectPreviousLectures:false}).length,0);
+assert.equal(service.courseOptions([session])[0].id,'course');
+const q=(id)=>({id,sessionId:session.id,slideIndex:0,text:'왜 필요한가요?',x:.2,y:.3,createdAt:'2026',status:'unanswered'});
+const groups=questions.groupPageQuestions([q('q1'),q('q2')],'p',questions.sectionsForPage(session,'p'));assert.equal(groups.length,1);assert.equal(groups[0].questionCount,2);assert.equal(groups[0].sectionId,'new');
+assert.equal(questions.sectionsForPage({...session,slides:[{...session.slides[0],imageUrl:'/changed.png'}]},'p').length,0);
+console.log('PASS: six workflow cases — config, series context, merge/split, disable, reanalysis preservation, confirmed-only pin grouping; source invalidation and immutable snapshots.');

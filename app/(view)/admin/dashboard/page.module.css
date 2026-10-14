@@ -123,6 +123,201 @@
   box-shadow: var(--focus);
 }
 
+.root .createModal {
+  width: 520px;
+  padding: 28px 30px;
+  border: 1px solid var(--color-border);
+}
+
+.root .createModalHeader {
+  display: grid;
+  gap: 5px;
+}
+
+.root .createModalHeader h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 34px;
+}
+
+.root .createModalHeader p {
+  margin: 0;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+  line-height: 20px;
+}
+
+.root .createForm {
+  margin-top: 16px;
+  gap: 16px;
+}
+
+.root .createForm :global(.folder-field) {
+  gap: 8px;
+}
+
+.root .createForm :global(.folder-field) span,
+.root .optionGroup legend {
+  color: var(--pin-neutral-700);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.root .createForm :global(.folder-field) input {
+  height: 46px;
+  padding: 0 14px;
+}
+
+.root .optionGroup {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.root .optionGroup legend {
+  margin-bottom: 9px;
+}
+
+.root .colorOptions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.root .colorOption,
+.root .colorSwatch {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.root .colorOption {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.root .colorSwatch {
+  --folder-color: var(--color-folder-action);
+  display: block;
+  background: var(--folder-color);
+}
+
+.root .colorBlue { --folder-color: var(--color-folder-action); }
+.root .colorPurple { --folder-color: var(--color-pending); }
+.root .colorOrange { --folder-color: var(--viz-cat-mobility); }
+.root .colorGreen { --folder-color: var(--viz-cat-clean); }
+.root .colorRed { --folder-color: var(--color-error); }
+
+.root .colorOption input:checked + .colorSwatch {
+  border: 4px solid var(--color-bg-surface);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--folder-color) 30%, transparent);
+}
+
+.root .colorOption input:focus-visible + .colorSwatch,
+.root .purposeOption input:focus-visible + span {
+  outline: 3px solid var(--pin-blue-300);
+  outline-offset: 2px;
+}
+
+.root .colorOption:has(input:disabled),
+.root .purposeOption:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.root .purposeOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.root .purposeOption {
+  position: relative;
+  display: block;
+  cursor: pointer;
+}
+
+.root .purposeOption span {
+  min-height: 34px;
+  padding: 7px 13px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.root .purposeOption input:checked + span {
+  border-color: var(--color-folder-action);
+  background: var(--color-brand-subtle);
+  color: var(--color-folder-action);
+  font-weight: 700;
+}
+
+.root .purposeDescription {
+  min-height: 42px;
+  margin: -1px 0 0;
+  padding: 10px 12px;
+  border-radius: 9px;
+  background: var(--pin-neutral-50);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 22px;
+}
+
+/* `기타` 목적에서는 같은 자리를 직접 입력하는 카테고리 이름 필드가 대신한다. */
+.root .purposeLabelInput {
+  height: 42px;
+  margin: -1px 0 0;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 9px;
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: 12px;
+}
+
+.root .purposeLabelInput::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.root .purposeLabelInput:focus {
+  outline: 0;
+  border-color: var(--color-brand);
+  box-shadow: var(--focus);
+}
+
+.root .purposeLabelInput:disabled {
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.root .createModal :global(.folder-modal-actions) {
+  margin-top: 0;
+  gap: 10px;
+}
+
+.root .createModal :global(.folder-modal-actions) :global(.btn) {
+  min-width: 70px;
+  height: 42px;
+  padding: 0 22px;
+}
+
+.root .createModal :global(.folder-modal-actions) :global(.btn.primary) {
+  background: var(--color-folder-action);
+}
+
+.root .createModal :global(.folder-modal-actions) :global(.btn.primary):hover {
+  background: var(--pin-blue-800);
+}
+
 .root :global(.folder-modal-actions) {
   display: flex;
   justify-content: flex-end;
@@ -170,6 +365,7 @@
   .root :global(.folder-dashboard-search) { width: 100%; grid-column: 1 / -1; }
   .root :global(.folder-dashboard-actions) :global(.btn) { width: 100%; padding: 0 10px; }
   .root :global(.folder-grid) { grid-template-columns: minmax(0, 1fr); }
+  .root .purposeOptions { gap: 7px; }
 }
 
 
@@ -186,4 +382,4 @@
 .root :global(.modal-close){width:40px;height:40px}}
 @media (max-width:600px){.root :global(.admin-page){padding:20px max(14px,env(safe-area-inset-left)) 32px max(14px,env(safe-area-inset-right));gap:22px}
 .root :global(.panel){padding:18px 16px}
-.root :global(.modal-backdrop){align-items:end;padding:0}.root :global(.share-modal){width:100%;max-height:calc(100dvh - 24px);overflow-y:auto;border-radius:24px 24px 0 0;padding:26px 20px max(24px,env(safe-area-inset-bottom))}}.root :global(.session-folder-error){padding:10px 12px;border:1px solid var(--color-error);border-radius:10px;background:var(--color-error-bg);color:var(--color-error);font-size:12px}
+.root :global(.modal-backdrop){align-items:end;padding:0}.root :global(.share-modal){width:100%;max-height:calc(100dvh - 24px);overflow-y:auto;border-radius:24px 24px 0 0;padding:26px 20px max(24px,env(safe-area-inset-bottom))}.root .createModal{width:100%}}.root :global(.session-folder-error){padding:10px 12px;border:1px solid var(--color-error);border-radius:10px;background:var(--color-error-bg);color:var(--color-error);font-size:12px}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { advancePinPlayback, canRotatePinPlayback, crossedPinMilestone, rectanglesOverlap, resolvePinDisplayPositions, resolveVisiblePresentationLabelIds } from "./presentation-rotation.ts";
+import { presentationAutoplayDelay, slideIndexFromPageNumber, advancePinPlayback, canRotatePinPlayback, crossedPinMilestone, rectanglesOverlap, resolvePinDisplayPositions, resolveVisiblePresentationLabelIds } from "./presentation-rotation.ts";
 
 test("PIN 총합이 새 10단위를 넘으면 건너뛴 구간 중 가장 높은 값을 고른다", () => {
   assert.equal(crossedPinMilestone(9, 10), 10);
@@ -35,10 +35,10 @@ test("현재 표시된 PIN과 가장 멀리 떨어진 PIN을 다음으로 고른
 });
 
 test("사용자가 PIN을 선택한 동안 자동 순환을 멈춘다", () => {
-  assert.equal(canRotatePinPlayback(true, 2, null), true);
-  assert.equal(canRotatePinPlayback(true, 2, "selected"), false);
-  assert.equal(canRotatePinPlayback(false, 2, null), false);
-  assert.equal(canRotatePinPlayback(true, 1, null), false);
+  assert.equal(canRotatePinPlayback(true, 2, 0, null), true);
+  assert.equal(canRotatePinPlayback(true, 2, 0, "selected"), false);
+  assert.equal(canRotatePinPlayback(false, 2, 0, null), false);
+  assert.equal(canRotatePinPlayback(true, 1, 1, null), false);
 });
 
 test("중앙이나 가장자리에 겹친 PIN 30개를 화면 안의 겹치지 않는 위치로 펼친다", () => {
@@ -80,4 +80,24 @@ test("새 이모티콘 PIN이 이전 말풍선과 겹치면 새 말풍선만 남
     labels[0],
     { id: "new-emoji", bounds: { left: 60, right: 140, top: 10, bottom: 50 } }
   ], pins.map((pin) => ({ ...pin, bounds: { ...pin.bounds, top: 50, bottom: 80 } })), "new-emoji"), ["new-emoji"]);
+});
+
+test("자동 넘김은 설정·PIN 노출·상세 dialog 상태에 맞는 지연만 반환한다", () => {
+  assert.equal(presentationAutoplayDelay(false, true, 1, 1, 2, false), null);
+  assert.equal(presentationAutoplayDelay(true, true, 2, 1, 2, false), null);
+  assert.equal(presentationAutoplayDelay(true, true, 2, 2, 2, false), 1000);
+  assert.equal(presentationAutoplayDelay(true, true, 0, 0, 2, false), 3000);
+  assert.equal(presentationAutoplayDelay(true, false, 2, 0, 2, false), 3000);
+  assert.equal(presentationAutoplayDelay(true, false, 0, 0, 1, false), null);
+  assert.equal(presentationAutoplayDelay(true, false, 0, 0, 2, true), null);
+});
+
+test("직접 입력한 1-based 슬라이드 번호 문자열이 범위 안의 정수일 때만 index로 바꾼다", () => {
+  assert.equal(slideIndexFromPageNumber("1", 10), 0);
+  assert.equal(slideIndexFromPageNumber("10", 10), 9);
+  assert.equal(slideIndexFromPageNumber("", 10), null);
+  assert.equal(slideIndexFromPageNumber("0", 10), null);
+  assert.equal(slideIndexFromPageNumber("11", 10), null);
+  assert.equal(slideIndexFromPageNumber("1.5", 10), null);
+  assert.equal(slideIndexFromPageNumber("invalid", 10), null);
 });

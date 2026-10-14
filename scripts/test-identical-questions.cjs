@@ -1,0 +1,13 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const ts=require('typescript');
+const source=fs.readFileSync('app/_model/identical-questions.ts','utf8');
+const exportsObject={};
+new Function('exports',ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText)(exportsObject);
+const {identicalQuestions}=exportsObject;
+const rows=[{id:'a',slideIndex:0,text:' 왜  그런가요? '},{id:'b',slideIndex:0,text:'왜 그런가요?'},{id:'c',slideIndex:1,text:'왜 그런가요?'},{id:'d',slideIndex:0,text:'왜 그런가요'},{id:'e',slideIndex:0,text:''},{id:'f',slideIndex:0,text:''}];
+assert.equal(identicalQuestions(rows).length,5);
+assert.deepEqual(identicalQuestions(rows)[0].map(q=>q.id),['a','b']);
+assert.equal(identicalQuestions([]).length,0);
+assert.equal(rows[0].text,' 왜  그런가요? ');
+console.log('Identical question grouping: passed');

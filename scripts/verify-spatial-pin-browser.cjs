@@ -1,0 +1,85 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- standalone Node CommonJS browser runner */
+const assert = require('node:assert/strict');
+const {chromium} = require('C:/Users/praisy/AppData/Local/Programs/Python/Python312/Lib/site-packages/playwright/driver/package');
+(async()=>{
+ const browser = await chromium.launch({headless:true});
+ try {
+  const page = await browser.newPage({viewport:{width:1440,height:960}});
+  const errors=[]; page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('http://127.0.0.1:3000/demo/soi');
+  await page.waitForURL('**/qa-studio',{timeout:120000});
+  await page.evaluate(()=>{
+   const sessions=JSON.parse(localStorage.getItem('pin-class-sessions-v1'));
+   const s=sessions.find(s=>s.id==='soi-demo');s.id='spatial-review-e2e';
+   const template=s.questions[0];
+   const texts=['모르겠어요','이해가 안 돼요','모르겠어요','안녕하세요','시장 규모 산출 방법이 궁금합니다','시장 크기는 어떻게 계산했나요'];
+   s.questions=texts.map((text,i)=>({...template,id:`spatial-check-${i}`,sessionId:s.id,slideIndex:0,x:.3+i*.004,y:.45,text,status:'unanswered',category:'confusing',anchorKind:'point',createdAt:new Date(2026,9,6,0,0,i).toISOString()}));
+   s.currentSlide=0;s.showQuestionPins=true;
+   localStorage.setItem('pin-class-sessions-v1',JSON.stringify(sessions));
+  });
+  await page.goto('http://127.0.0.1:3000/admin/session/spatial-review-e2e');
+  const marker=page.getByRole('button',{name:'가까운 질문 6개 묶음 열기'});
+  await marker.waitFor({timeout:120000});
+  await marker.click();
+  const panel=page.getByRole('complementary',{name:'위치 묶음 질문'});
+  await panel.waitFor();
+  assert.match(await panel.innerText(),/이 위치의 질문 6개/);
+  assert.match(await panel.innerText(),/안녕하세요/);
+  await page.waitForFunction(()=>{
+   const panel=document.querySelector('aside[aria-label="위치 묶음 질문"]');
+   return panel?.textContent.includes('3개 항목') && panel?.textContent.includes('의미 유사도 분류');
+  },null,{timeout:120000});
+  await page.screenshot({path:'output/spatial-pins-live.png'});
+  await page.getByRole('button',{name:'원래 핀 위치 펼쳐 보기'}).click();
+  assert.equal(await page.locator('[data-presentation-pin-id]').count(),6);
+  await page.keyboard.press('Escape');
+  await panel.waitFor({state:'hidden'});
+  await page.getByRole('button',{name:'가까운 핀 묶기 ON'}).click();
+  assert.equal(await page.locator('[data-presentation-pin-id]').count(),6);
+  await page.getByRole('button',{name:'가까운 핀 묶기 OFF'}).click();
+  await marker.click();
+  await page.getByRole('heading').first().click({timeout:2000}).catch(()=>page.mouse.click(10,10));
+  await panel.waitFor({state:'hidden'});
+  await page.goto('http://127.0.0.1:3000/admin/session/spatial-review-e2e/present');
+  await marker.waitFor({timeout:120000});
+  await marker.click();
+  await panel.waitFor();
+  await page.screenshot({path:'output/spatial-pins-presentation.png'});
+  const geometry=await page.locator('.slide-canvas').boundingBox();
+  assert.ok(geometry.width>1000 && geometry.height>500);
+  await page.setViewportSize({width:600,height:800});
+  await panel.waitFor();
+  const box=await panel.boundingBox();
+  assert.ok(box.x>=0 && box.x+box.width<=601);
+  await page.setViewportSize({width:1440,height:960});
+  await page.goto('http://127.0.0.1:3000/demo/soi?view=live&sample=clusters');
+  await page.waitForURL('**/admin/session/soi-pin-groups-demo');
+  await marker.click();
+  const confusion = panel.locator('details').filter({has:page.locator('summary',{hasText:'모르겠어요'})});
+  await confusion.locator('summary').hover();
+  assert.equal(await page.locator('[data-filter-match="true"]').count(),3);
+  await confusion.locator('summary').click();
+  await confusion.getByRole('button',{name:'이 질문 3개 설명 완료',exact:true}).click();
+  await panel.getByRole('button',{name:'3개 완료 · 되돌리기'}).waitFor();
+  const resolved=await page.evaluate(()=>JSON.parse(localStorage.getItem('pin-class-sessions-v1')).find(s=>s.id==='soi-pin-groups-demo').questions.filter(q=>q.status==='resolved').length);
+  assert.equal(resolved,3);
+  await panel.getByRole('button',{name:'3개 완료 · 되돌리기'}).click();
+  await confusion.getByRole('button',{name:'이 질문 3개 설명 완료',exact:true}).waitFor();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('pin-class-sessions-v1')).find(s=>s.id==='soi-pin-groups-demo').questions.filter(q=>q.status==='resolved').length),0);
+  await page.evaluate(()=>{
+   const sessions=JSON.parse(localStorage.getItem('pin-class-sessions-v1'));
+   const s=sessions.find(s=>s.id==='soi-pin-groups-demo');
+   s.questions.push({...s.questions[0],id:'new-live-pin',text:'추가 질문입니다',createdAt:new Date().toISOString()});
+   const value=JSON.stringify(sessions);localStorage.setItem('pin-class-sessions-v1',value);
+   window.dispatchEvent(new StorageEvent('storage',{key:'pin-class-sessions-v1',newValue:value}));
+  });
+  await panel.getByRole('button',{name:'새 질문 +1 · 반영하기'}).waitFor();
+  assert.match(await panel.innerText(),/이 위치의 질문 6개/);
+  await panel.getByRole('button',{name:'새 질문 +1 · 반영하기'}).click();
+  assert.match(await panel.innerText(),/이 위치의 질문 7개/);
+  await page.screenshot({path:'output/spatial-pins-actions.png'});
+  assert.deepEqual(errors,[]);
+  console.log('PASS: hover highlights, semantic group completion, undo, stable snapshot and explicit live intake');
+  console.log('PASS: live and presentation cluster, mixed questions, originals, toggle, Escape, outside click, narrow viewport; no browser errors');
+ } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

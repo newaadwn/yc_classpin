@@ -1,0 +1,12 @@
+'use client';
+import {useEffect,useRef,useState} from 'react';
+import {createPortal} from 'react-dom';
+import s from './generation-settings.module.css';
+export const REPORT_SECTIONS=['다시 설명할 내용 TOP 3','질문 유형 · 궁금해한 이유','페이지별 질문 분포','답변 현황','반복 질문 주제','공감 많은 미답변','분석 상태 · 검토 항목','영역 미분류'];
+export type GenerationOptions={mode:'auto'|'manual';sections:number[]};
+export const allGenerationOptions=():GenerationOptions=>({mode:'auto',sections:REPORT_SECTIONS.map((_,i)=>i)});
+export function GenerationSettings({title,initial,onGenerate,onCancel,error}:{error?:string;title:string;initial?:GenerationOptions;onGenerate:(value:GenerationOptions)=>void;onCancel:()=>void}){
+ const dialog=useRef<HTMLDialogElement>(null);const [manual,setManual]=useState(initial?.mode==='manual'),[selected,setSelected]=useState(initial?.sections??REPORT_SECTIONS.map((_,i)=>i));
+ useEffect(()=>{const previous=document.activeElement as HTMLElement|null;dialog.current?.showModal();return()=>previous?.focus();},[]);
+ return createPortal(<dialog ref={dialog} className={s.dialog} aria-labelledby="generation-settings-title" onCancel={onCancel} onPointerDown={e=>e.stopPropagation()} onWheel={e=>e.stopPropagation()}><header><h2 id="generation-settings-title">{title} 생성 설정</h2><button onClick={onCancel} aria-label="생성 설정 닫기">×</button></header>{error&&<p role="alert">{error}</p>}<p>어떤 부분을 보고 싶으신가요?</p><button className={s.auto} autoFocus onClick={()=>onGenerate(allGenerationOptions())}>AI에게 전체 맡기기</button><p className={s.hint}>모든 항목을 포함하고 현재 질문·영역 분석을 바탕으로 검토 우선순위를 제안합니다. 질문이 없는 항목은 없는 상태로 표시합니다.</p><button className={s.manual} aria-expanded={manual} onClick={()=>setManual(!manual)}>분석 항목 직접 선택</button>{manual&&<><fieldset><legend>받고 싶은 분석 · 복수 선택</legend>{REPORT_SECTIONS.map((label,i)=><label key={label}><input type="checkbox" checked={selected.includes(i)} onChange={e=>setSelected(values=>e.target.checked?[...values,i]:values.filter(v=>v!==i))}/>{label}</label>)}</fieldset><div className={s.actions}><button onClick={()=>setSelected(REPORT_SECTIONS.map((_,i)=>i))}>전체 선택</button><button onClick={()=>setSelected([])}>전체 해제</button><button disabled={!selected.length} className={s.auto} onClick={()=>onGenerate({mode:'manual',sections:[...selected].sort((a,b)=>a-b)})}>선택한 {selected.length}개 항목으로 생성</button></div>{!selected.length&&<p role="status">항목을 하나 이상 선택하거나 AI에게 전체 맡기기를 눌러주세요.</p>}</>}<p className={s.hint}>생성 후에도 항목을 변경할 수 있습니다. 선택한 항목만 화면에 구성하며 분석 결과는 검토용 초안입니다.</p></dialog>,document.body);
+}

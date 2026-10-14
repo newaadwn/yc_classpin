@@ -1,0 +1,7 @@
+.timer { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--color-border); border-radius:10px; background:var(--color-bg-surface); color:var(--color-text-primary); white-space:nowrap; font-size:13px; }
+.timer b { font-variant-numeric:tabular-nums; font-size:16px; }
+.timer small { color:var(--color-text-secondary); }
+.live { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:999px; background:var(--color-error); color:var(--color-bg-surface); font-size:12px; font-weight:700; }
+.live i { width:7px; height:7px; border-radius:50%; background:currentColor; }
+.presentation { position:absolute; top:12px; left:50%; transform:translateX(-50%); z-index:30; pointer-events:none; box-shadow:var(--shadow-sm); }
+@media(max-width:600px) { .timer { padding:6px 8px; gap:6px; font-size:12px; } .timer b { font-size:14px; } }
